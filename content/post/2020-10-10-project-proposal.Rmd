@@ -9,10 +9,10 @@ tags: []
 ## IS415 Geospatial Analytics Project Proposal
 
 ### Title 
-Assessing and improving age-friendliness in Singapore through GIS
+Spatial Analysis of the Distribution Pattern of Healthcare Facilities and Amenities in Singapore Using Geographic Information System
 
 ### Problem and motivation
-Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2% (link).  While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day. 
+Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2%. By 2030, one in four Singaporeans will be aged 65 and above. While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day. 
 
 **However, in this small city-state, would its current urban landscape be enough to support its elderly?**
 
@@ -58,11 +58,14 @@ Community Clubs
 Eldercare Services
 - https://data.gov.sg/dataset/eldercare-services
 
+Hospitals
+- https://www.healthhub.sg/directory/hospitals
+
 CHAS Clinics
 - https://data.gov.sg/dataset/chas-clinics
 
-Upcoming and Completed Healthcare Facilities
-- https://www.moh.gov.sg/upcoming-and-completed-healthcare-facilities
+Polyclinics
+- http://www.hospitals.sg/polyclinics
 
 TCM Clinics
 - https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM
