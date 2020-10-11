@@ -1,7 +1,7 @@
 baseurl = "/"
 languageCode = "en-us"
 title = "Geospatial Application Team 11"
-theme = "hugo-lithium"
+theme = "HugoTheme-VibrantShadows"
 googleAnalytics = ""
 disqusShortname = ""
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
@@ -11,7 +11,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [[menu.main]]
     name = "About"
-    url = "/about/"
+    url = "/about/2020-10-10-project-proposal.html"
 [[menu.main]]
     name = "GitHub"
     url = "https://github.com/rstudio/blogdown"
