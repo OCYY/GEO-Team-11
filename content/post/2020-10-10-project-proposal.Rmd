@@ -1,13 +1,11 @@
 ---
-title: Project Proposal by Team 11
-author: Neo Jia Hui, Ong Chen Yu
+title: Team 11 Project Proposal
+author: Ong Chen Yu, Neo Jia Hui
 date: '2020-10-10'
-slug: project-proposal
-categories:
-  - R
+slug: team-11-propject-proposal
+categories: []
 tags: []
 ---
-
 ## IS415 Geospatial Analytics Project Proposal
 
 ### Title 
@@ -22,8 +20,11 @@ It is essential that relevant facilities and amenities are strategically built a
 
 ### Project objectives
 Through this project, we aim to build a Shiny application to:
+
 - Analyse the supply and demand of age-friendly amenities and facilities in subzone planning area
+
 - Analyse the availability of age-friendly amenities and facilities in subzone planning area
+
 - Determine which areas needs more age-friendly amenities and facilities
 
 ### Literature reviews 
@@ -67,16 +68,20 @@ TCM Clinics
 - https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM
 
 ### Application Design Storyboard
-![View Data tab with selectors](/post/2020-10-10-project-proposal_files/Storyboard-2.png)
-View Data tab with selectors
+<img src="/post/2020-10-10-project-proposal_files/Storyboard-2.png" alt="view data tab with filters/ selectors" width="700px" height ="400px"/>
 
-![KDE Plot tab with filters](/post/2020-10-10-project-proposal_files/Storyboard-3.png)
-KDE Plot tab with filters
+<img src="/post/2020-10-10-project-proposal_files/Storyboard-3.png" alt="kde plot tab with filters/ selctors" width="700px" height ="400px"/>
 
 ### Tools and technologies
+- RStudio
+- Shiny
+- Leaflet
+- Github
+- R Blogdown
+- Netlify
 
 ### Application system architecture
-![](/post/2020-10-10-project-proposal_files/architechture.png)
+![application system architecture](/post/2020-10-10-project-proposal_files/architechture.png){width=700px height=400px}
 
 ### Scope of work
-
+![](/post/2020-10-10-project-proposal_files/Gantt Chart.jpg){width=750px height=260px}

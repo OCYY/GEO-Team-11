@@ -1,0 +1,93 @@
+---
+title: Team 11 Project Proposal
+author: Ong Chen Yu, Neo Jia Hui
+date: '2020-10-10'
+slug: team-11-propject-proposal
+categories: []
+tags: []
+---
+
+
+
+<div id="is415-geospatial-analytics-project-proposal" class="section level2">
+<h2>IS415 Geospatial Analytics Project Proposal</h2>
+<div id="title" class="section level3">
+<h3>Title</h3>
+<p>Assessing and improving age-friendliness in Singapore through GIS</p>
+</div>
+<div id="problem-and-motivation" class="section level3">
+<h3>Problem and motivation</h3>
+<p>Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2% (link). While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day.</p>
+<p><strong>However, in this small city-state, would its current urban landscape be enough to support its elderly?</strong></p>
+<p>It is essential that relevant facilities and amenities are strategically built and readily available for elderly in this land-scarce Singapore.</p>
+</div>
+<div id="project-objectives" class="section level3">
+<h3>Project objectives</h3>
+<p>Through this project, we aim to build a Shiny application to:</p>
+<ul>
+<li><p>Analyse the supply and demand of age-friendly amenities and facilities in subzone planning area</p></li>
+<li><p>Analyse the availability of age-friendly amenities and facilities in subzone planning area</p></li>
+<li><p>Determine which areas needs more age-friendly amenities and facilities</p></li>
+</ul>
+</div>
+<div id="literature-reviews" class="section level3">
+<h3>Literature reviews</h3>
+</div>
+<div id="approach-methodology" class="section level3">
+<h3>Approach/ methodology</h3>
+<p>Web scraping using R
+- To gather data from websites where data is not readily available</p>
+<p>Kernel Density Estimation
+- To calculate the density of aged population
+- To calculate the density of age friendly amenities and facilities</p>
+<p>Local Moran’s I
+- Identifying outliers or clusters of amenities and facilities</p>
+<p>Getis-Ord Gi*
+- Identifying hot and cold spots of elderly/ amenities and facilities</p>
+<p>Geographically weighted correlation</p>
+</div>
+<div id="selected-datasets" class="section level3">
+<h3>Selected Datasets</h3>
+<p>Singapore Residents by Planning AreaSubzone, Age Group, Sex and Type of Dwelling, June 2011-2020
+- <a href="https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data" class="uri">https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data</a></p>
+<p>Master Plan 2014 Subzone Boundary (Web)
+- <a href="https://data.gov.sg/dataset/master-plan-2014-subzone-boundary-web" class="uri">https://data.gov.sg/dataset/master-plan-2014-subzone-boundary-web</a></p>
+<p>Community Clubs
+- <a href="https://data.gov.sg/dataset/community-clubs" class="uri">https://data.gov.sg/dataset/community-clubs</a></p>
+<p>Eldercare Services
+- <a href="https://data.gov.sg/dataset/eldercare-services" class="uri">https://data.gov.sg/dataset/eldercare-services</a></p>
+<p>CHAS Clinics
+- <a href="https://data.gov.sg/dataset/chas-clinics" class="uri">https://data.gov.sg/dataset/chas-clinics</a></p>
+<p>Upcoming and Completed Healthcare Facilities
+- <a href="https://www.moh.gov.sg/upcoming-and-completed-healthcare-facilities" class="uri">https://www.moh.gov.sg/upcoming-and-completed-healthcare-facilities</a></p>
+<p>TCM Clinics
+- <a href="https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM" class="uri">https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM</a></p>
+</div>
+<div id="application-design-storyboard" class="section level3">
+<h3>Application Design Storyboard</h3>
+<p><img src="/post/2020-10-10-project-proposal_files/Storyboard-2.png" alt="view data tab with filters/ selectors" width="700px" height ="400px"/></p>
+<p><img src="/post/2020-10-10-project-proposal_files/Storyboard-3.png" alt="kde plot tab with filters/ selctors" width="700px" height ="400px"/></p>
+</div>
+<div id="tools-and-technologies" class="section level3">
+<h3>Tools and technologies</h3>
+<ul>
+<li>RStudio</li>
+<li>Shiny</li>
+<li>Leaflet</li>
+<li>Github</li>
+<li>R Blogdown</li>
+<li>Netlify</li>
+</ul>
+</div>
+<div id="application-system-architecture" class="section level3">
+<h3>Application system architecture</h3>
+<div class="figure">
+<img src="/post/2020-10-10-project-proposal_files/architechture.png" width="700" height="400" alt="" />
+<p class="caption">application system architecture</p>
+</div>
+</div>
+<div id="scope-of-work" class="section level3">
+<h3>Scope of work</h3>
+<p><img src="/post/2020-10-10-project-proposal_files/Gantt%20Chart.jpg" width="750" height="260" /></p>
+</div>
+</div>
