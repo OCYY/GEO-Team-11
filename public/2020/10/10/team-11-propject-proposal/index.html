@@ -57,7 +57,7 @@
 
   <article class="article">
     
-    <span class="article-duration">2 min read</span>
+    <span class="article-duration">3 min read</span>
     
 
     <h1 class="article-title">Team 11 Project Proposal</h1>
@@ -74,16 +74,16 @@
 <h2>IS415 Geospatial Analytics Project Proposal</h2>
 <div id="title" class="section level3">
 <h3>Title</h3>
-<p>Assessing and improving age-friendliness in Singapore through GIS</p>
+<p>Spatial Analysis of the Distribution Pattern of Healthcare Facilities and Amenities in Singapore Using Geographic Information System</p>
 </div>
 <div id="problem-and-motivation" class="section level3">
-<h3>Problem and motivation</h3>
-<p>Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2% (link). While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day.</p>
+<h3>Problem and Motivation</h3>
+<p>Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2%. By 2030, one in four Singaporeans will be aged 65 and above. While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day.</p>
 <p><strong>However, in this small city-state, would its current urban landscape be enough to support its elderly?</strong></p>
 <p>It is essential that relevant facilities and amenities are strategically built and readily available for elderly in this land-scarce Singapore.</p>
 </div>
-<div id="project-objectives" class="section level3">
-<h3>Project objectives</h3>
+<div id="objectives" class="section level3">
+<h3>Objectives</h3>
 <p>Through this project, we aim to build a Shiny application to:</p>
 <ul>
 <li><p>Analyse the supply and demand of age-friendly amenities and facilities in subzone planning area</p></li>
@@ -91,38 +91,123 @@
 <li><p>Determine which areas needs more age-friendly amenities and facilities</p></li>
 </ul>
 </div>
-<div id="literature-reviews" class="section level3">
-<h3>Literature reviews</h3>
+<div id="reviews-of-past-projects" class="section level3">
+<h3>Reviews of Past Projects</h3>
+<ol style="list-style-type: decimal">
+<li>Signal</li>
+</ol>
+<ul>
+<li>Aim of Study
+<ul>
+<li>Discover network-constrained spatio-temporal patterns of traffic accidents in Leeds.</li>
+</ul></li>
+<li>Methodology
+<ul>
+<li>Network Constrained Kernel Density Estimation</li>
+<li>Network Constrained K-Function</li>
+<li>Network Constrained Cross K-Function</li>
+<li>Network Constrained Cross Pair Correlation Function</li>
+</ul></li>
+<li>Learning Points
+<ul>
+<li>User interface for all analysis are very consistent throughout.</li>
+</ul></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Dangy</li>
+</ol>
+<ul>
+<li>Aim of Study
+<ul>
+<li>Study of potential spreading patterns of dengue and demographics of patients.</li>
+</ul></li>
+<li>Methodology
+<ul>
+<li>Exploratory Data Analysis</li>
+<li>Kernel Density Estimation Animation</li>
+<li>Intensity Map based on KDE</li>
+</ul></li>
+<li>Learning Points
+<ul>
+<li>Animation when plotting the map and GIFs makes the entire analysis more lively and interesting.</li>
+</ul></li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Ezmodel</li>
+</ol>
+<ul>
+<li>Aim of Study
+<ul>
+<li>Analyse how housing prices are affected by spatial variation among the features in local surroundings.</li>
+</ul></li>
+<li>Methodology
+<ul>
+<li>Geographically Weighted Regression</li>
+<li>Mixed Geographically Weighted Regression</li>
+<li>Isoline Mapping via Inverse Distance Weighted Interpolation</li>
+</ul></li>
+<li>Learning Points
+<ul>
+<li>Users can download GWR output, saving the results that they need/ want.</li>
+<li>Allow user to specify global and local variables for GWR.</li>
+</ul></li>
+</ul>
 </div>
-<div id="approach-methodology" class="section level3">
-<h3>Approach/ methodology</h3>
-<p>Web scraping using R
-- To gather data from websites where data is not readily available</p>
-<p>Kernel Density Estimation
-- To calculate the density of aged population
-- To calculate the density of age friendly amenities and facilities</p>
-<p>Local Moran’s I
-- Identifying outliers or clusters of amenities and facilities</p>
-<p>Getis-Ord Gi*
-- Identifying hot and cold spots of elderly/ amenities and facilities</p>
+<div id="methodology" class="section level3">
+<h3>Methodology</h3>
+<p>Web scraping using R</p>
+<ul>
+<li>To gather data from websites where data is not readily available</li>
+</ul>
+<p>Kernel Density Estimation</p>
+<ul>
+<li>To calculate the density of aged population</li>
+<li>To calculate the density of age friendly amenities and facilities</li>
+</ul>
+<p>Local Moran’s I</p>
+<ul>
+<li>Identifying outliers or clusters of amenities and facilities</li>
+</ul>
+<p>Getis-Ord Gi*</p>
+<ul>
+<li>Identifying hot and cold spots of elderly/ amenities and facilities</li>
+</ul>
 <p>Geographically weighted correlation</p>
 </div>
 <div id="selected-datasets" class="section level3">
 <h3>Selected Datasets</h3>
-<p>Singapore Residents by Planning AreaSubzone, Age Group, Sex and Type of Dwelling, June 2011-2020
-- <a href="https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data" class="uri">https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data</a></p>
-<p>Master Plan 2014 Subzone Boundary (Web)
-- <a href="https://data.gov.sg/dataset/master-plan-2014-subzone-boundary-web" class="uri">https://data.gov.sg/dataset/master-plan-2014-subzone-boundary-web</a></p>
-<p>Community Clubs
-- <a href="https://data.gov.sg/dataset/community-clubs" class="uri">https://data.gov.sg/dataset/community-clubs</a></p>
-<p>Eldercare Services
-- <a href="https://data.gov.sg/dataset/eldercare-services" class="uri">https://data.gov.sg/dataset/eldercare-services</a></p>
-<p>CHAS Clinics
-- <a href="https://data.gov.sg/dataset/chas-clinics" class="uri">https://data.gov.sg/dataset/chas-clinics</a></p>
-<p>Upcoming and Completed Healthcare Facilities
-- <a href="https://www.moh.gov.sg/upcoming-and-completed-healthcare-facilities" class="uri">https://www.moh.gov.sg/upcoming-and-completed-healthcare-facilities</a></p>
-<p>TCM Clinics
-- <a href="https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM" class="uri">https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM</a></p>
+<p>Singapore Residents by Planning AreaSubzone, Age Group, Sex and Type of Dwelling, June 2011-2020</p>
+<ul>
+<li><a href="https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data" class="uri">https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data</a></li>
+</ul>
+<p>Master Plan 2014 Subzone Boundary (Web)</p>
+<ul>
+<li><a href="https://data.gov.sg/dataset/master-plan-2014-subzone-boundary-web" class="uri">https://data.gov.sg/dataset/master-plan-2014-subzone-boundary-web</a></li>
+</ul>
+<p>Community Clubs</p>
+<ul>
+<li><a href="https://data.gov.sg/dataset/community-clubs" class="uri">https://data.gov.sg/dataset/community-clubs</a></li>
+</ul>
+<p>Eldercare Services</p>
+<ul>
+<li><a href="https://data.gov.sg/dataset/eldercare-services" class="uri">https://data.gov.sg/dataset/eldercare-services</a></li>
+</ul>
+<p>Hospitals</p>
+<ul>
+<li><a href="https://www.healthhub.sg/directory/hospitals" class="uri">https://www.healthhub.sg/directory/hospitals</a></li>
+</ul>
+<p>CHAS Clinics</p>
+<ul>
+<li><a href="https://data.gov.sg/dataset/chas-clinics" class="uri">https://data.gov.sg/dataset/chas-clinics</a></li>
+</ul>
+<p>Polyclinics</p>
+<ul>
+<li><a href="http://www.hospitals.sg/polyclinics" class="uri">http://www.hospitals.sg/polyclinics</a></li>
+</ul>
+<p>TCM Clinics</p>
+<ul>
+<li><a href="https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM" class="uri">https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM</a></li>
+</ul>
 </div>
 <div id="application-design-storyboard" class="section level3">
 <h3>Application Design Storyboard</h3>
@@ -130,7 +215,7 @@
 <p><img src="/post/2020-10-10-project-proposal_files/Storyboard-3.png" alt="kde plot tab with filters/ selctors" width="700px" height ="400px"/></p>
 </div>
 <div id="tools-and-technologies" class="section level3">
-<h3>Tools and technologies</h3>
+<h3>Tools and Technologies</h3>
 <ul>
 <li>RStudio</li>
 <li>Shiny</li>
@@ -141,14 +226,11 @@
 </ul>
 </div>
 <div id="application-system-architecture" class="section level3">
-<h3>Application system architecture</h3>
-<div class="figure">
-<img src="/post/2020-10-10-project-proposal_files/architechture.png" width="700" height="400" alt="" />
-<p class="caption">application system architecture</p>
-</div>
+<h3>Application System Architecture</h3>
+<p><img src="/post/2020-10-10-project-proposal_files/architechture.png" width="700" height="400" /></p>
 </div>
 <div id="scope-of-work" class="section level3">
-<h3>Scope of work</h3>
+<h3>Scope of Work</h3>
 <p><img src="/post/2020-10-10-project-proposal_files/Gantt%20Chart.jpg" width="750" height="260" /></p>
 </div>
 </div>

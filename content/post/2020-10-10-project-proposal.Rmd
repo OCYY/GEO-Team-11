@@ -27,7 +27,48 @@ Through this project, we aim to build a Shiny application to:
 
 - Determine which areas needs more age-friendly amenities and facilities
 
-### Literature Reviews 
+### Reviews of Past Projects
+1. Signal
+
+* Aim of Study
+  + Discover network-constrained spatio-temporal patterns of traffic accidents in Leeds.
+
+* Methodology
+  + Network Constrained Kernel Density Estimation
+  + Network Constrained K-Function
+  + Network Constrained Cross K-Function
+  + Network Constrained Cross Pair Correlation Function
+
+* Learning Points
+  + User interface for all analysis are very consistent throughout.
+
+2. Dangy
+
+* Aim of Study
+  + Study of potential spreading patterns of dengue and demographics of patients. 
+
+* Methodology
+  + Exploratory Data Analysis
+  + Kernel Density Estimation Animation
+  + Intensity Map based on KDE
+  
+* Learning Points
+  + Animation when plotting the map and GIFs makes the entire analysis more lively and interesting. 
+  
+3. Ezmodel
+
+* Aim of Study
+  + Analyse how housing prices are affected by spatial variation among the features in local surroundings.
+
+* Methodology
+  + Geographically Weighted Regression
+  + Mixed Geographically Weighted Regression
+  + Isoline Mapping via Inverse Distance Weighted Interpolation
+
+* Learning Points
+  + Users can download GWR output, saving the results that they need/ want.
+  + Allow user to specify global and local variables for GWR. 
+
 
 ### Methodology 
 Web scraping using R
@@ -51,27 +92,35 @@ Geographically weighted correlation
 
 ### Selected Datasets
 Singapore Residents by Planning AreaSubzone, Age Group, Sex and Type of Dwelling, June 2011-2020
+
 - https://www.singstat.gov.sg/find-data/search-by-theme/population/geographic-distribution/latest-data
 
 Master Plan 2014 Subzone Boundary (Web)
+
 - https://data.gov.sg/dataset/master-plan-2014-subzone-boundary-web
 
 Community Clubs
+
 - https://data.gov.sg/dataset/community-clubs
 
 Eldercare Services
+
 - https://data.gov.sg/dataset/eldercare-services
 
 Hospitals
+
 - https://www.healthhub.sg/directory/hospitals
 
 CHAS Clinics
+
 - https://data.gov.sg/dataset/chas-clinics
 
 Polyclinics
+
 - http://www.hospitals.sg/polyclinics
 
 TCM Clinics
+
 - https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM
 
 ### Application Design Storyboard
