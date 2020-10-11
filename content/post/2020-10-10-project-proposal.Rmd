@@ -31,16 +31,20 @@ Through this project, we aim to build a Shiny application to:
 
 ### Methodology 
 Web scraping using R
+
 - To gather data from websites where data is not readily available
 
 Kernel Density Estimation 
+
 - To calculate the density of aged population
 - To calculate the density of age friendly amenities and facilities
 
 Local Moran’s I 
+
 - Identifying outliers or clusters of amenities and facilities
 
 Getis-Ord Gi*
+
 - Identifying hot and cold spots of elderly/ amenities and facilities
 
 Geographically weighted correlation
