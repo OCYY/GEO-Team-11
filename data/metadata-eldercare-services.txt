@@ -1,0 +1,37 @@
+# Metadata for Eldercare Services
+---
+Identifier: '043dad07-1bb7-484e-8f37-dcbc772186a9'
+Name: 'eldercare-services'
+Title: 'Eldercare Services'
+Description: 'Directory of Eldercare Services'
+Topics:
+  - 'Society'
+Keywords:
+  - 'Eldercare'
+  - 'onemap'
+  - 'themes'
+Publisher:
+  Name: 'Ministry of Social and Family Development'
+  Admin 1:
+    Name: 'Tang See Hoon'
+    Department: 'Ministry of Social and Family Development'
+    Email: 'tang_see_hoon@msf.gov.sg'
+Sources:
+  - 'Ministry of Social and Family Development'
+Source Url: 'http://www.onemap.sg/API/Help/'
+License: 'https://data.gov.sg/open-data-licence'
+Frequency: 'Ad-hoc'
+Last Updated: '2017-04-01T04:04:34.382195'
+Resources:
+  -
+    Identifier: '399e427a-8c88-465d-b368-fab5550def64'
+    Title: 'Eldercare Services (KML)'
+    Url: 'https://geo.data.gov.sg/eldercare/2016/07/28/kml/eldercare.zip'
+    Format: 'KML'
+    Last Updated: '2016-07-27T16:00:00'
+  -
+    Identifier: '81244fb2-9d1b-4bd8-98ff-49c041fe53ac'
+    Title: 'Eldercare Services (SHP)'
+    Url: 'https://geo.data.gov.sg/eldercare/2016/07/28/shp/eldercare.zip'
+    Format: 'SHP'
+    Last Updated: '2016-07-27T16:00:00'

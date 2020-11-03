@@ -1,0 +1,122 @@
+---
+title: "Project"
+author: "Ong Chen Yu, Neo Jia Hui"
+date: "10/15/2020"
+output: 
+  html_document:
+    theme: journal
+    highlight: monochrome
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    code_folding: show
+    number_section: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# IS415 Geospatial Analytics Project
+
+# Title
+Spatial Analysis of the Distribution Pattern of Healthcare Facilities and Amenities in Singapore Using Geographic Information Analysis
+
+# Problem & Motivation
+Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2%. By 2030, one in four Singaporeans will be aged 65 and above. While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day.
+
+However, in this small city-state, would its current urban landscape be enough to support its elderly?
+
+It is essential that relevant facilities and amenities are strategically built and readily available for elderly in this land-scarce Singapore.
+
+# Objectives
+Through this project, we aim to build a Shiny application to:
+
+- Analyse the supply and demand of age-friendly amenities and facilities in subzone planning area
+
+- Analyse the availability of age-friendly amenities and facilities in subzone planning area
+
+- Determine which areas needs more age-friendly amenities and facilities
+
+# Getting started
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+packages = c('tmap', 'tidyverse',
+             'sf', 'sp', 'caret',
+             'geojsonio', 'stplanr',
+             'reshape2', 'broom')
+
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+# Load dataset
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+popdata <- read_csv("data/aspatial/respopagesextod2011to2019.csv")
+
+```
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+#
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+```
+
+
+
+
