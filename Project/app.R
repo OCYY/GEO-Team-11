@@ -63,10 +63,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                              
                            ),
                            mainPanel(
-                             h1("Header 1"),
-                             
-                             h4("Output 1"),
-                             verbatimTextOutput("txtout"),
+                             tableOutput("contents")
                              
                            ) # mainPanel
                            
