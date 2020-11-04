@@ -11,6 +11,8 @@
 library(shiny)
 library(shinythemes)
 library(rgdal)
+library(leaflet)
+
 
 popdata <- read_csv("../data/respopagesextod2011to2020.csv")
 population20 <- popdata %>%
@@ -37,7 +39,7 @@ mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414
 community_club_supply <- mpsz3414 %>%
   dplyr::select(SUBZONE_N, PLN_AREA_N, COMMUNITY_CLUBS)
 
-community_club_supply <- st_set_geometry(community_club_supply,NULL)
+community_club_supply_nogeo <- st_set_geometry(community_club_supply,NULL)
 
 eldercare <- st_read("../data/ELDERCARE.kml")
 eldercare3414 <- st_transform(eldercare, 3414)
@@ -46,7 +48,7 @@ mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
 eldercare_supply <- mpsz3414 %>%
   dplyr::select(SUBZONE_N, PLN_AREA_N, ELDERCARE)
 
-eldercare_supply <- st_set_geometry(eldercare_supply,NULL)
+eldercare_supply_nogeo <- st_set_geometry(eldercare_supply,NULL)
 
 chas_clinics <- st_read("../data/chas-clinics-kml.kml")
 chas_clinics3413 <- st_transform(chas_clinics, 3414)
@@ -56,7 +58,7 @@ mpsz3414$`CHASCLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3413))
 chas_supply <- mpsz3414 %>%
   dplyr::select(SUBZONE_N, PLN_AREA_N,CHASCLINIC)
 
-chas_supply <- st_set_geometry(chas_supply,NULL)
+chas_supply_nogeo <- st_set_geometry(chas_supply,NULL)
 
 
 
@@ -82,6 +84,9 @@ ui <- fluidPage(theme = shinytheme("paper"),
                                                   ".csv")),
                              
                              # Horizontal line ----
+                             selectInput("mapset", "Choose a dataset:",
+                                         choices = c("Community Clubs", "CHAS Clinics", "Eldercare Services")),
+                             
                              tags$hr(),
                              
                              # Input: Checkbox if file has header ----
@@ -112,6 +117,7 @@ ui <- fluidPage(theme = shinytheme("paper"),
                              
                            ),
                            mainPanel(
+                             leafletOutput(outputId = "map",height = 660),
                              tableOutput("contents")
                              
                            ) # mainPanel
@@ -143,6 +149,11 @@ ui <- fluidPage(theme = shinytheme("paper"),
 
 # Define server logic to read selected file ----
 server <- function(input, output) {
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addTiles()%>%
+      addMarkers(data=community_club$geometry)
+  })
   
   output$contents <- renderTable({
     
@@ -189,7 +200,7 @@ server <- function(input, output) {
   
   output$community_clubs <- DT::renderDataTable(
     DT::datatable(
-      community_club_supply, options = list(
+      eldercare_supply_nogeo, options = list(
         lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
         pageLength = 15
       )
@@ -197,7 +208,7 @@ server <- function(input, output) {
   )
   output$eldercare <- DT::renderDataTable(
     DT::datatable(
-      eldercare_supply, options = list(
+      eldercare_supply_nogeo, options = list(
         lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
         pageLength = 15
       )
@@ -205,7 +216,7 @@ server <- function(input, output) {
   )
   output$chas <- DT::renderDataTable(
     DT::datatable(
-      chas_supply, options = list(
+      chas_supply_nogeo, options = list(
         lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
         pageLength = 15
       )
@@ -215,19 +226,14 @@ server <- function(input, output) {
   datasetInput <- reactive({
     switch(input$dataset,
            "Population (65 Above)" = pop_65above,
-           "CHAS Clinics" = chas_supply,
-           "Eldercare Services" = eldercare_supply,
-           "Community Clubs" = community_club_supply)
+           "CHAS Clinics" = chas_supply_nogeo,
+           "Eldercare Services" = eldercare_supply_nogeo,
+           "Community Clubs" = community_club_supply_nogeo)
   })
   
   output$table <- renderTable({
     datasetInput()
   })
-  
-
-  
-  
-  
   
 }
 
