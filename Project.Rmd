@@ -40,7 +40,7 @@ Through this project, we aim to build a Shiny application to:
 
 # Getting started
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
-packages = c('tmap', 'tidyverse',
+packages = c('tmap', 'tidyverse','rvest','stringr','rebus','lubridate','janitor',
              'sf', 'sp', 'caret',
              'geojsonio', 'stplanr',
              'reshape2', 'broom')
@@ -55,12 +55,74 @@ for(p in packages){
 
 # Load dataset
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
-popdata <- read_csv("data/aspatial/respopagesextod2011to2019.csv")
+mpsz <- st_read(dsn = "data",
+                layer = "MP14_SUBZONE_WEB_PL")
+popdata <- read_csv("data/respopagesextod2011to2020.csv")
+eldercare <- st_read("data/ELDERCARE.kml")
+chas_clinic <- st_read("data/chas-clinics")
 
 ```
 
-#
+# Scraping data from MOH website
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+# url <-'https://www.moh.gov.sg/upcoming-and-completed-healthcare-facilities'
+# content <- read_html(url)
+# tables <- content %>% html_table(fill = TRUE)
+# length(tables)
+# first_table <- tables[[1]]
+# 
+# for (item in tables){
+#   names = item[2]
+#   adds = item[3]
+#   status = item[4]
+# }
+```
+
+
+```{r}
+# Scraping test (from ah kam's link)
+# get_item <- function(html){
+#       html %>%
+#         # The relevant tag
+#         html_nodes('.sfContentBlock') %>%
+#         html_text() %>%
+#         # Trim additional white space
+#         str_trim() %>%
+#         # Convert the list into a vector
+#         unlist()
+# }
+# get_data_table <- function(html){
+#       item <- get_item(html)
+#       # Combine into a tibble
+#       combined_data <- tibble(items = item) 
+#     }
+# get_data_from_url <- function(url){
+#     html <- read_html(url)
+#     get_data_table(html, company_name)
+#   }
+# scrape_write_table <- function(url){
+# 
+#       page <- read_html(url)
+# 
+#       # Extract the number of pages that have to be queried
+#       # latest_page_number <- get_last_page(first_page)
+# 
+#       # Generate the target URLs
+#       # list_of_pages <- str_c(url, '?page=', 1:latest_page_number)
+# 
+#       # Apply the extraction and bind the individual results back into one table,
+#       # which is then written as a tsv file into the working directory
+#       page %>%
+#         # Apply to all URLs
+#         map(get_data_from_url) %>%
+#         # Combine the tibbles into one tibble
+#         bind_rows() %>%
+#         # Write a tab-separated file
+#         write_tsv(str_c('.tsv'))
+# }
+# scrape_write_table(url)
+# moh_data <- read_tsv('MOH.tsv')
+# tail(moh_data, 5)
 ```
 
 #
