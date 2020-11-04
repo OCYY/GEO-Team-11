@@ -1,0 +1,351 @@
+---
+title: "Project"
+author: "Ong Chen Yu, Neo Jia Hui"
+date: "10/15/2020"
+output: 
+  html_document:
+    theme: journal
+    highlight: monochrome
+    toc: true
+    toc_float: true
+    toc_depth: 4
+    code_folding: show
+    number_section: true
+---
+
+
+
+<div id="is415-geospatial-analytics-project" class="section level1">
+<h1>IS415 Geospatial Analytics Project</h1>
+</div>
+<div id="title" class="section level1">
+<h1>Title</h1>
+<p>Spatial Analysis of the Distribution Pattern of Healthcare Facilities and Amenities in Singapore Using Geographic Information Analysis</p>
+</div>
+<div id="problem-motivation" class="section level1">
+<h1>Problem &amp; Motivation</h1>
+<p>Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2%. By 2030, one in four Singaporeans will be aged 65 and above. While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day.</p>
+<p>However, in this small city-state, would its current urban landscape be enough to support its elderly?</p>
+<p>It is essential that relevant facilities and amenities are strategically built and readily available for elderly in this land-scarce Singapore.</p>
+</div>
+<div id="objectives" class="section level1">
+<h1>Objectives</h1>
+<p>Through this project, we aim to build a Shiny application to:</p>
+<ul>
+<li><p>Analyse the supply and demand of age-friendly amenities and facilities in subzone planning area</p></li>
+<li><p>Analyse the availability of age-friendly amenities and facilities in subzone planning area</p></li>
+<li><p>Determine which areas needs more age-friendly amenities and facilities</p></li>
+</ul>
+</div>
+<div id="installing-and-loading-required-packages" class="section level1">
+<h1>Installing and Loading Required Packages</h1>
+<pre class="r"><code>packages = c(&#39;tmap&#39;, &#39;tidyverse&#39;,&#39;rvest&#39;,&#39;stringr&#39;,&#39;rebus&#39;,&#39;lubridate&#39;,&#39;janitor&#39;,
+             &#39;sf&#39;, &#39;sp&#39;, &#39;caret&#39;,
+             &#39;geojsonio&#39;, &#39;stplanr&#39;,
+             &#39;reshape2&#39;, &#39;broom&#39;)
+
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}</code></pre>
+</div>
+<div id="scraping-data-from-moh-website" class="section level1">
+<h1>Scraping data from MOH website</h1>
+<pre class="r"><code># url &lt;-&#39;https://www.moh.gov.sg/upcoming-and-completed-healthcare-facilities&#39;
+# content &lt;- read_html(url)
+# tables &lt;- content %&gt;% html_table(fill = TRUE)
+# length(tables)
+# first_table &lt;- tables[[1]]
+# 
+# for (item in tables){
+#   names = item[2]
+#   adds = item[3]
+#   status = item[4]
+# }</code></pre>
+<pre class="r"><code># Scraping test (from ah kam&#39;s link)
+# get_item &lt;- function(html){
+#       html %&gt;%
+#         # The relevant tag
+#         html_nodes(&#39;.sfContentBlock&#39;) %&gt;%
+#         html_text() %&gt;%
+#         # Trim additional white space
+#         str_trim() %&gt;%
+#         # Convert the list into a vector
+#         unlist()
+# }
+# get_data_table &lt;- function(html){
+#       item &lt;- get_item(html)
+#       # Combine into a tibble
+#       combined_data &lt;- tibble(items = item) 
+#     }
+# get_data_from_url &lt;- function(url){
+#     html &lt;- read_html(url)
+#     get_data_table(html, company_name)
+#   }
+# scrape_write_table &lt;- function(url){
+# 
+#       page &lt;- read_html(url)
+# 
+#       # Extract the number of pages that have to be queried
+#       # latest_page_number &lt;- get_last_page(first_page)
+# 
+#       # Generate the target URLs
+#       # list_of_pages &lt;- str_c(url, &#39;?page=&#39;, 1:latest_page_number)
+# 
+#       # Apply the extraction and bind the individual results back into one table,
+#       # which is then written as a tsv file into the working directory
+#       page %&gt;%
+#         # Apply to all URLs
+#         map(get_data_from_url) %&gt;%
+#         # Combine the tibbles into one tibble
+#         bind_rows() %&gt;%
+#         # Write a tab-separated file
+#         write_tsv(str_c(&#39;.tsv&#39;))
+# }
+# scrape_write_table(url)
+# moh_data &lt;- read_tsv(&#39;MOH.tsv&#39;)
+# tail(moh_data, 5)</code></pre>
+</div>
+<div id="data-wrangling" class="section level1">
+<h1>Data Wrangling</h1>
+<div id="loading-in-geospatial-data" class="section level2">
+<h2>Loading in Geospatial Data</h2>
+<pre class="r"><code>mpsz &lt;- st_read(dsn = &quot;data&quot;,
+                layer = &quot;MP14_SUBZONE_WEB_PL&quot;)</code></pre>
+<pre><code>## Reading layer `MP14_SUBZONE_WEB_PL&#39; from data source `/Users/neojiahui/Documents/GitHub/GEO-Team-11/data&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 323 features and 15 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33
+## projected CRS:  SVY21</code></pre>
+<pre class="r"><code>popdata &lt;- read_csv(&quot;data/respopagesextod2011to2020.csv&quot;)
+eldercare &lt;- st_read(&quot;data/ELDERCARE.kml&quot;)</code></pre>
+<pre><code>## Reading layer `ELDERCARE&#39; from data source `/Users/neojiahui/Documents/GitHub/GEO-Team-11/data/ELDERCARE.kml&#39; using driver `KML&#39;
+## Simple feature collection with 133 features and 2 fields
+## geometry type:  POINT
+## dimension:      XYZ
+## bbox:           xmin: 103.7119 ymin: 1.271472 xmax: 103.9561 ymax: 1.439561
+## z_range:        zmin: 0 zmax: 0
+## geographic CRS: WGS 84</code></pre>
+<pre class="r"><code>chas_clinic &lt;- st_read(&quot;data/chas-clinics-kml.kml&quot;)</code></pre>
+<pre><code>## Reading layer `MOH_CHAS_CLINICS&#39; from data source `/Users/neojiahui/Documents/GitHub/GEO-Team-11/data/chas-clinics-kml.kml&#39; using driver `KML&#39;
+## Simple feature collection with 1167 features and 2 fields
+## geometry type:  POINT
+## dimension:      XYZ
+## bbox:           xmin: 103.5818 ymin: 1.016264 xmax: 103.9903 ymax: 1.456037
+## z_range:        zmin: 0 zmax: 0
+## geographic CRS: WGS 84</code></pre>
+</div>
+<div id="loading-in-aspatial-data" class="section level2">
+<h2>Loading in Aspatial Data</h2>
+<pre class="r"><code>popdata &lt;- read_csv(&quot;data/respopagesextod2011to2020.csv&quot;)</code></pre>
+</div>
+</div>
+<div id="transforming-the-projection" class="section level1">
+<h1>Transforming the Projection</h1>
+<pre class="r"><code>mpsz3414 &lt;- st_transform(mpsz, 3414)
+st_crs(mpsz3414)</code></pre>
+<pre><code>## Coordinate Reference System:
+##   User input: EPSG:3414 
+##   wkt:
+## PROJCRS[&quot;SVY21 / Singapore TM&quot;,
+##     BASEGEOGCRS[&quot;SVY21&quot;,
+##         DATUM[&quot;SVY21&quot;,
+##             ELLIPSOID[&quot;WGS 84&quot;,6378137,298.257223563,
+##                 LENGTHUNIT[&quot;metre&quot;,1]]],
+##         PRIMEM[&quot;Greenwich&quot;,0,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+##         ID[&quot;EPSG&quot;,4757]],
+##     CONVERSION[&quot;Singapore Transverse Mercator&quot;,
+##         METHOD[&quot;Transverse Mercator&quot;,
+##             ID[&quot;EPSG&quot;,9807]],
+##         PARAMETER[&quot;Latitude of natural origin&quot;,1.36666666666667,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433],
+##             ID[&quot;EPSG&quot;,8801]],
+##         PARAMETER[&quot;Longitude of natural origin&quot;,103.833333333333,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433],
+##             ID[&quot;EPSG&quot;,8802]],
+##         PARAMETER[&quot;Scale factor at natural origin&quot;,1,
+##             SCALEUNIT[&quot;unity&quot;,1],
+##             ID[&quot;EPSG&quot;,8805]],
+##         PARAMETER[&quot;False easting&quot;,28001.642,
+##             LENGTHUNIT[&quot;metre&quot;,1],
+##             ID[&quot;EPSG&quot;,8806]],
+##         PARAMETER[&quot;False northing&quot;,38744.572,
+##             LENGTHUNIT[&quot;metre&quot;,1],
+##             ID[&quot;EPSG&quot;,8807]]],
+##     CS[Cartesian,2],
+##         AXIS[&quot;northing (N)&quot;,north,
+##             ORDER[1],
+##             LENGTHUNIT[&quot;metre&quot;,1]],
+##         AXIS[&quot;easting (E)&quot;,east,
+##             ORDER[2],
+##             LENGTHUNIT[&quot;metre&quot;,1]],
+##     USAGE[
+##         SCOPE[&quot;unknown&quot;],
+##         AREA[&quot;Singapore&quot;],
+##         BBOX[1.13,103.59,1.47,104.07]],
+##     ID[&quot;EPSG&quot;,3414]]</code></pre>
+<pre class="r"><code>eldercare3414 &lt;- st_transform(eldercare, 3414)
+st_crs(eldercare3414)</code></pre>
+<pre><code>## Coordinate Reference System:
+##   User input: EPSG:3414 
+##   wkt:
+## PROJCRS[&quot;SVY21 / Singapore TM&quot;,
+##     BASEGEOGCRS[&quot;SVY21&quot;,
+##         DATUM[&quot;SVY21&quot;,
+##             ELLIPSOID[&quot;WGS 84&quot;,6378137,298.257223563,
+##                 LENGTHUNIT[&quot;metre&quot;,1]]],
+##         PRIMEM[&quot;Greenwich&quot;,0,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+##         ID[&quot;EPSG&quot;,4757]],
+##     CONVERSION[&quot;Singapore Transverse Mercator&quot;,
+##         METHOD[&quot;Transverse Mercator&quot;,
+##             ID[&quot;EPSG&quot;,9807]],
+##         PARAMETER[&quot;Latitude of natural origin&quot;,1.36666666666667,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433],
+##             ID[&quot;EPSG&quot;,8801]],
+##         PARAMETER[&quot;Longitude of natural origin&quot;,103.833333333333,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433],
+##             ID[&quot;EPSG&quot;,8802]],
+##         PARAMETER[&quot;Scale factor at natural origin&quot;,1,
+##             SCALEUNIT[&quot;unity&quot;,1],
+##             ID[&quot;EPSG&quot;,8805]],
+##         PARAMETER[&quot;False easting&quot;,28001.642,
+##             LENGTHUNIT[&quot;metre&quot;,1],
+##             ID[&quot;EPSG&quot;,8806]],
+##         PARAMETER[&quot;False northing&quot;,38744.572,
+##             LENGTHUNIT[&quot;metre&quot;,1],
+##             ID[&quot;EPSG&quot;,8807]]],
+##     CS[Cartesian,2],
+##         AXIS[&quot;northing (N)&quot;,north,
+##             ORDER[1],
+##             LENGTHUNIT[&quot;metre&quot;,1]],
+##         AXIS[&quot;easting (E)&quot;,east,
+##             ORDER[2],
+##             LENGTHUNIT[&quot;metre&quot;,1]],
+##     USAGE[
+##         SCOPE[&quot;unknown&quot;],
+##         AREA[&quot;Singapore&quot;],
+##         BBOX[1.13,103.59,1.47,104.07]],
+##     ID[&quot;EPSG&quot;,3414]]</code></pre>
+<pre class="r"><code>clinic3414 &lt;- st_transform(chas_clinic, 3414)
+st_crs(clinic3414)</code></pre>
+<pre><code>## Coordinate Reference System:
+##   User input: EPSG:3414 
+##   wkt:
+## PROJCRS[&quot;SVY21 / Singapore TM&quot;,
+##     BASEGEOGCRS[&quot;SVY21&quot;,
+##         DATUM[&quot;SVY21&quot;,
+##             ELLIPSOID[&quot;WGS 84&quot;,6378137,298.257223563,
+##                 LENGTHUNIT[&quot;metre&quot;,1]]],
+##         PRIMEM[&quot;Greenwich&quot;,0,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433]],
+##         ID[&quot;EPSG&quot;,4757]],
+##     CONVERSION[&quot;Singapore Transverse Mercator&quot;,
+##         METHOD[&quot;Transverse Mercator&quot;,
+##             ID[&quot;EPSG&quot;,9807]],
+##         PARAMETER[&quot;Latitude of natural origin&quot;,1.36666666666667,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433],
+##             ID[&quot;EPSG&quot;,8801]],
+##         PARAMETER[&quot;Longitude of natural origin&quot;,103.833333333333,
+##             ANGLEUNIT[&quot;degree&quot;,0.0174532925199433],
+##             ID[&quot;EPSG&quot;,8802]],
+##         PARAMETER[&quot;Scale factor at natural origin&quot;,1,
+##             SCALEUNIT[&quot;unity&quot;,1],
+##             ID[&quot;EPSG&quot;,8805]],
+##         PARAMETER[&quot;False easting&quot;,28001.642,
+##             LENGTHUNIT[&quot;metre&quot;,1],
+##             ID[&quot;EPSG&quot;,8806]],
+##         PARAMETER[&quot;False northing&quot;,38744.572,
+##             LENGTHUNIT[&quot;metre&quot;,1],
+##             ID[&quot;EPSG&quot;,8807]]],
+##     CS[Cartesian,2],
+##         AXIS[&quot;northing (N)&quot;,north,
+##             ORDER[1],
+##             LENGTHUNIT[&quot;metre&quot;,1]],
+##         AXIS[&quot;easting (E)&quot;,east,
+##             ORDER[2],
+##             LENGTHUNIT[&quot;metre&quot;,1]],
+##     USAGE[
+##         SCOPE[&quot;unknown&quot;],
+##         AREA[&quot;Singapore&quot;],
+##         BBOX[1.13,103.59,1.47,104.07]],
+##     ID[&quot;EPSG&quot;,3414]]</code></pre>
+</div>
+<div id="checking-for-missing-values" class="section level1">
+<h1>Checking for Missing Values</h1>
+<pre class="r"><code>sum(is.na(mpsz3414))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>sum(is.na(popdata))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>sum(is.na(eldercare3414))</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>sum(is.na(clinic3414))</code></pre>
+<pre><code>## [1] 0</code></pre>
+</div>
+<div id="exploratory-spatial-data-analysis" class="section level1">
+<h1>Exploratory Spatial Data Analysis</h1>
+<div id="calculating-the-supply-of-eldercare-services-in-each-planning-subzone" class="section level2">
+<h2>Calculating the Supply of Eldercare Services in Each Planning Subzone</h2>
+<pre class="r"><code>mpsz3414$`ELDERCARE` &lt;- lengths(st_intersects(mpsz3414, eldercare3414))</code></pre>
+</div>
+<div id="visualising-the-supply-of-eldercare-services-at-the-planning-subzone-level" class="section level2">
+<h2>Visualising the Supply of Eldercare Services at the Planning Subzone Level</h2>
+<pre class="r"><code>tm_shape(mpsz3414)+
+  tm_fill(col = &quot;ELDERCARE&quot;,
+          palette = &quot;Blues&quot;,
+          style = &quot;jenks&quot;) +
+  tm_layout(main.title = &quot;Supply of Eldercare Services at the Planning Subzone Level&quot;,
+            main.title.position = &quot;center&quot;,
+            main.title.size = 1,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            legend.outside = FALSE,
+            legend.position = c(&quot;right&quot;, &quot;bottom&quot;),
+            frame = FALSE) +
+  tm_borders(alpha = 0.5)</code></pre>
+<p><img src="./Project_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="calculating-the-supply-of-chas-clinics-in-each-planning-subzone" class="section level2">
+<h2>Calculating the Supply of CHAS Clinics in Each Planning Subzone</h2>
+<pre class="r"><code>mpsz3414$`CLINICS` &lt;- lengths(st_intersects(mpsz3414, clinic3414))</code></pre>
+</div>
+<div id="visualising-the-supply-of-chas-clinics-at-the-planning-subzone-level" class="section level2">
+<h2>Visualising the Supply of CHAS Clinics at the Planning Subzone Level</h2>
+<pre class="r"><code>tm_shape(mpsz3414)+
+  tm_fill(col = &quot;CLINICS&quot;,
+          palette = &quot;Blues&quot;,
+          style = &quot;jenks&quot;) +
+  tm_layout(main.title = &quot;Supply of CHAS Clinics at the Planning Subzone Level&quot;,
+            main.title.position = &quot;center&quot;,
+            main.title.size = 1,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            legend.outside = FALSE,
+            legend.position = c(&quot;right&quot;, &quot;bottom&quot;),
+            frame = FALSE) +
+  tm_borders(alpha = 0.5)</code></pre>
+<p><img src="./Project_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+</div>
+<div id="section" class="section level1">
+<h1></h1>
+</div>
+<div id="section-1" class="section level1">
+<h1></h1>
+</div>
+<div id="section-2" class="section level1">
+<h1></h1>
+</div>
+<div id="section-3" class="section level1">
+<h1></h1>
+</div>
+<div id="section-4" class="section level1">
+<h1></h1>
+</div>
+<div id="section-5" class="section level1">
+<h1></h1>
+</div>

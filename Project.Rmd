@@ -38,7 +38,8 @@ Through this project, we aim to build a Shiny application to:
 
 - Determine which areas needs more age-friendly amenities and facilities
 
-# Getting started
+
+# Installing and Loading Required Packages
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
 packages = c('tmap', 'tidyverse','rvest','stringr','rebus','lubridate','janitor',
              'sf', 'sp', 'caret',
@@ -51,16 +52,6 @@ for(p in packages){
   }
   library(p, character.only = T)
 }
-```
-
-# Load dataset
-```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
-mpsz <- st_read(dsn = "data",
-                layer = "MP14_SUBZONE_WEB_PL")
-popdata <- read_csv("data/respopagesextod2011to2020.csv")
-eldercare <- st_read("data/ELDERCARE.kml")
-chas_clinic <- st_read("data/chas-clinics")
-
 ```
 
 # Scraping data from MOH website
@@ -77,7 +68,6 @@ chas_clinic <- st_read("data/chas-clinics")
 #   status = item[4]
 # }
 ```
-
 
 ```{r}
 # Scraping test (from ah kam's link)
@@ -125,33 +115,144 @@ chas_clinic <- st_read("data/chas-clinics")
 # tail(moh_data, 5)
 ```
 
-#
+
+# Data Wrangling
+
+## Loading in Geospatial Data
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+mpsz <- st_read(dsn = "data",
+                layer = "MP14_SUBZONE_WEB_PL")
+popdata <- read_csv("data/respopagesextod2011to2020.csv")
+eldercare <- st_read("data/ELDERCARE.kml")
+chas_clinic <- st_read("data/chas-clinics-kml.kml")
+community_club <- st_read("data/community-clubs-kml.kml")
 ```
 
-
-#
+## Loading in Aspatial Data
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+popdata <- read_csv("data/respopagesextod2011to2020.csv")
 ```
 
-
-#
+## Transforming the Projection
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+mpsz3414 <- st_transform(mpsz, 3414)
+st_crs(mpsz3414)
 ```
 
-
-#
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+eldercare3414 <- st_transform(eldercare, 3414)
+st_crs(eldercare3414)
 ```
 
-
-#
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+chas_clinic3414 <- st_transform(chas_clinic, 3414)
+st_crs(chas_clinic3414)
 ```
 
-
-#
 ```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+community_club3414 <- st_transform(community_club, 3414)
+st_crs(community_club3414)
+```
+
+## Checking for Missing Values
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+sum(is.na(mpsz3414))
+sum(is.na(popdata))
+sum(is.na(eldercare3414))
+sum(is.na(chas_clinic3414))
+sum(is.na(community_club3414))
+```
+
+## Extracting 2020 Population Data
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+population20 <- popdata %>%
+  filter(Time == 2020)
+```
+
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+population20_tidy <- population20 %>%
+  group_by(PA, SZ, AG) %>%
+  summarise(`POP` = sum(`Pop`)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = AG, values_from = POP) %>%
+  mutate(TOTAL = rowSums(.[3:21]))
+
+glimpse(population20_tidy)
+```
+
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+pop20 <- population20_tidy %>%
+  mutate(`5_to_6` = `5_to_9` * perc20) %>%
+  mutate(`0_to_6` = round(`0_to_4` + `5_to_6`)) %>%
+  dplyr::select(PA, SZ, `0_to_6`, TOTAL)
+  
+glimpse(pop20)
+```
+
+## Calculating the Supply of Eldercare Services in Each Planning Subzone
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
+```
+
+## Visualising the Supply of Eldercare Services at the Planning Subzone Level
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+tm_shape(mpsz3414)+
+  tm_fill(col = "ELDERCARE",
+          palette = "Blues",
+          style = "jenks") +
+  tm_layout(main.title = "Supply of Eldercare Services at the Planning Subzone Level",
+            main.title.position = "center",
+            main.title.size = 1,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            legend.outside = FALSE,
+            legend.position = c("right", "bottom"),
+            frame = FALSE) +
+  tm_borders(alpha = 0.5)
+```
+
+## Calculating the Supply of CHAS Clinics in Each Planning Subzone
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+mpsz3414$`CLINICS` <- lengths(st_intersects(mpsz3414, chas_clinic3414))
+```
+
+## Visualising the Supply of CHAS Clinics at the Planning Subzone Level
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+tm_shape(mpsz3414)+
+  tm_fill(col = "CLINICS",
+          palette = "Blues",
+          style = "jenks") +
+  tm_layout(main.title = "Supply of CHAS Clinics at the Planning Subzone Level",
+            main.title.position = "center",
+            main.title.size = 1,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            legend.outside = FALSE,
+            legend.position = c("right", "bottom"),
+            frame = FALSE) +
+  tm_borders(alpha = 0.5)
+```
+
+## Calculating the Supply of Community Clubs in Each Planning Subzone
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414))
+```
+
+## Visualising the Supply of Community Clubs at the Planning Subzone Level
+```{r echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE }
+tm_shape(mpsz3414)+
+  tm_fill(col = "COMMUNITY_CLUBS",
+          palette = "Blues",
+          style = "jenks") +
+  tm_layout(main.title = "Supply of CHAS Clinics at the Planning Subzone Level",
+            main.title.position = "center",
+            main.title.size = 1,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            legend.outside = FALSE,
+            legend.position = c("right", "bottom"),
+            frame = FALSE) +
+  tm_borders(alpha = 0.5)
 ```
 
 
