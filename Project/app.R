@@ -37,12 +37,16 @@ mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414
 community_club_supply <- mpsz3414 %>%
   dplyr::select(SUBZONE_N, PLN_AREA_N, COMMUNITY_CLUBS)
 
+community_club_supply <- st_set_geometry(community_club_supply,NULL)
+
 eldercare <- st_read("../data/ELDERCARE.kml")
 eldercare3414 <- st_transform(eldercare, 3414)
 mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
 
 eldercare_supply <- mpsz3414 %>%
   dplyr::select(SUBZONE_N, PLN_AREA_N, ELDERCARE)
+
+eldercare_supply <- st_set_geometry(eldercare_supply,NULL)
 
 chas_clinics <- st_read("../data/chas-clinics-kml.kml")
 chas_clinics3413 <- st_transform(chas_clinics, 3414)
@@ -51,6 +55,9 @@ mpsz3414$`CHASCLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3413))
 
 chas_supply <- mpsz3414 %>%
   dplyr::select(SUBZONE_N, PLN_AREA_N,CHASCLINIC)
+
+chas_supply <- st_set_geometry(chas_supply,NULL)
+
 
 
 # Define UI
