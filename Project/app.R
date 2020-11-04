@@ -11,6 +11,22 @@
 library(shiny)
 library(shinythemes)
 
+popdata <- read_csv("../data/respopagesextod2011to2020.csv")
+population20 <- popdata %>%
+  filter(Time == 2020)
+
+population20_tidy <- population20 %>%
+  group_by(PA, SZ, AG) %>%
+  summarise(`POP` = sum(`Pop`)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = AG, values_from = POP) %>%
+  mutate(TOTAL = rowSums(.[3:21]))
+
+pop_65above <- population20_tidy %>%
+  mutate(`65_Above` = rowSums(.[16:21])) %>%
+  dplyr::select(PA, SZ, `65_Above`)
+
+
 # Define UI
 ui <- fluidPage(theme = shinytheme("slate"),
                 navbarPage(
@@ -69,9 +85,8 @@ ui <- fluidPage(theme = shinytheme("slate"),
                            
                   ), # Navbar 1, tabPanel
                   
-                  
-                  tabPanel("View Data", "This panel is intentionally left blank"),
-                  tabPanel("Navbar 3", "This panel is intentionally left blank")
+                  tabPanel("Data", DT::dataTableOutput("mytable")),
+                  tabPanel("Navbar 3")
                   
                 ) # navbarPage
 ) # fluidPage
@@ -110,6 +125,12 @@ server <- function(input, output) {
       return(df)
     }
     
+
+
+  })
+  
+  output$mytable = DT::renderDataTable({
+    pop_65above
   })
   
 }
