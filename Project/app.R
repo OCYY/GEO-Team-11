@@ -10,6 +10,7 @@
 # Load R packages
 library(shiny)
 library(shinythemes)
+library(rgdal)
 
 popdata <- read_csv("../data/respopagesextod2011to2020.csv")
 population20 <- popdata %>%
@@ -25,6 +26,32 @@ population20_tidy <- population20 %>%
 pop_65above <- population20_tidy %>%
   mutate(`65_Above` = rowSums(.[16:21])) %>%
   dplyr::select(PA, SZ, `65_Above`)
+
+mpsz <- st_read(dsn = "../data",
+                layer = "MP14_SUBZONE_WEB_PL")
+mpsz3414 <- st_transform(mpsz, 3414)
+community_club <- st_read("../data/community-clubs-kml.kml")
+community_club3414 <- st_transform(community_club, 3414)
+mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414))
+
+community_club_supply <- mpsz3414 %>%
+  dplyr::select(SUBZONE_N, PLN_AREA_N, COMMUNITY_CLUBS)
+
+eldercare <- st_read("../data/ELDERCARE.kml")
+eldercare3414 <- st_transform(eldercare, 3414)
+mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
+
+eldercare_supply <- mpsz3414 %>%
+  dplyr::select(SUBZONE_N, PLN_AREA_N, ELDERCARE)
+
+chas_clinics <- st_read("../data/chas-clinics-kml.kml")
+chas_clinics3413 <- st_transform(chas_clinics, 3414)
+
+mpsz3414$`CHASCLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3413))
+
+chas_supply <- mpsz3414 %>%
+  dplyr::select(SUBZONE_N, PLN_AREA_N,CHASCLINIC)
+
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("paper"),
@@ -84,8 +111,24 @@ ui <- fluidPage(theme = shinytheme("paper"),
                            
                   ), # Navbar 1, tabPanel
                   
-                  tabPanel("Data", DT::dataTableOutput("poptable")),
-                  tabPanel("Navbar 3")
+                  tabPanel("Data",
+                           
+                           sidebarPanel(
+                             
+                             # Input: Choose dataset ----
+                             selectInput("dataset", "Choose a dataset:",
+                                         choices = c("Population (65 Above)", "CHAS Clinics", "Eldercare Services","Community Clubs"))
+          
+                             
+                           ),
+                           
+                           # Main panel for displaying outputs ----
+                           mainPanel(
+                             
+                             tableOutput("table")
+                             
+                           ))
+                  
                   
                 ) # navbarPage
 ) # fluidPage
@@ -136,6 +179,48 @@ server <- function(input, output) {
       )
     )
   )
+  
+  output$community_clubs <- DT::renderDataTable(
+    DT::datatable(
+      community_club_supply, options = list(
+        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
+        pageLength = 15
+      )
+    )
+  )
+  output$eldercare <- DT::renderDataTable(
+    DT::datatable(
+      eldercare_supply, options = list(
+        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
+        pageLength = 15
+      )
+    )
+  )
+  output$chas <- DT::renderDataTable(
+    DT::datatable(
+      chas_supply, options = list(
+        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
+        pageLength = 15
+      )
+    )
+  )
+  
+  datasetInput <- reactive({
+    switch(input$dataset,
+           "Population (65 Above)" = pop_65above,
+           "CHAS Clinics" = chas_supply,
+           "Eldercare Services" = eldercare_supply,
+           "Community Clubs" = community_club_supply)
+  })
+  
+  output$table <- renderTable({
+    datasetInput()
+  })
+  
+
+  
+  
+  
   
 }
 
