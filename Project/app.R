@@ -26,9 +26,8 @@ pop_65above <- population20_tidy %>%
   mutate(`65_Above` = rowSums(.[16:21])) %>%
   dplyr::select(PA, SZ, `65_Above`)
 
-
 # Define UI
-ui <- fluidPage(theme = shinytheme("slate"),
+ui <- fluidPage(theme = shinytheme("paper"),
                 navbarPage(
                   # theme = "cerulean",  # <--- To use a theme, uncomment this
                   "Old but Gold",
@@ -85,7 +84,7 @@ ui <- fluidPage(theme = shinytheme("slate"),
                            
                   ), # Navbar 1, tabPanel
                   
-                  tabPanel("Data", DT::dataTableOutput("mytable")),
+                  tabPanel("Data", DT::dataTableOutput("poptable")),
                   tabPanel("Navbar 3")
                   
                 ) # navbarPage
@@ -129,12 +128,16 @@ server <- function(input, output) {
 
   })
   
-  output$mytable = DT::renderDataTable({
-    pop_65above
-  })
+  output$poptable <- DT::renderDataTable(
+    DT::datatable(
+      pop_65above, options = list(
+        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
+        pageLength = 15
+      )
+    )
+  )
   
 }
-
 
 # shinyApp()
 shinyApp(ui = ui, server = server)
