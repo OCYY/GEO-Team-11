@@ -8,11 +8,13 @@
 #
 
 # Load R packages
-library(shiny)
-library(shinythemes)
-library(rgdal)
-library(leaflet)
-
+packages = c('shiny', 'shinythemes', 'leaflet', 'sp', 'rgdal', 'rgeos', 'sf', 'tidyverse', 'tmap', 'maptools', 'raster','spatstat')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p,character.only = T)
+}
 
 popdata <- read_csv("../data/respopagesextod2011to2020.csv")
 population20 <- popdata %>%
@@ -26,7 +28,7 @@ population20_tidy <- population20 %>%
   mutate(TOTAL = rowSums(.[3:21]))
 
 pop_65above <- population20_tidy %>%
-  mutate(`65_Above` = rowSums(.[16:21])) %>%
+  mutate(`65_Above` = as.integer(rowSums(.[16:21]))) %>%
   dplyr::select(PA, SZ, `65_Above`)
 
 mpsz <- st_read(dsn = "../data",
@@ -53,10 +55,10 @@ eldercare_supply_nogeo <- st_set_geometry(eldercare_supply,NULL)
 chas_clinics <- st_read("../data/chas-clinics-kml.kml")
 chas_clinics3413 <- st_transform(chas_clinics, 3414)
 
-mpsz3414$`CHASCLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3413))
+mpsz3414$`CHAS_CLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3413))
 
 chas_supply <- mpsz3414 %>%
-  dplyr::select(SUBZONE_N, PLN_AREA_N,CHASCLINIC)
+  dplyr::select(SUBZONE_N, PLN_AREA_N,CHAS_CLINIC)
 
 chas_supply_nogeo <- st_set_geometry(chas_supply,NULL)
 
