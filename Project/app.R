@@ -8,7 +8,7 @@
 #
 
 # Load R packages
-packages = c('shiny', 'shinythemes', 'leaflet', 'sp', 'rgdal', 'rgeos', 'sf', 'tidyverse', 'tmap', 'maptools', 'raster','spatstat')
+packages = c('shiny', 'shinythemes', 'leaflet', 'DT', 'sp', 'rgdal', 'rgeos', 'sf', 'tidyverse', 'tmap', 'maptools', 'raster','spatstat')
 for (p in packages){
   if(!require(p, character.only = T)){
     install.packages(p)
@@ -61,8 +61,6 @@ chas_supply <- mpsz3414 %>%
   dplyr::select(SUBZONE_N, PLN_AREA_N,CHAS_CLINIC)
 
 chas_supply_nogeo <- st_set_geometry(chas_supply,NULL)
-
-
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("paper"),
@@ -126,13 +124,16 @@ ui <- fluidPage(theme = shinytheme("paper"),
                            
                   ), # Navbar 1, tabPanel
                   
-                  tabPanel("Data",
+                  tabPanel("View Data",
                            
                            sidebarPanel(
                              
                              # Input: Choose dataset ----
                              selectInput("dataset", "Choose a dataset:",
-                                         choices = c("Population (65 Above)", "CHAS Clinics", "Eldercare Services","Community Clubs"))
+                                         choices = c("Population (65 Above)", 
+                                                     "CHAS Clinics", 
+                                                     "Eldercare Services",
+                                                     "Community Clubs"))
           
                              
                            ),
@@ -140,12 +141,14 @@ ui <- fluidPage(theme = shinytheme("paper"),
                            # Main panel for displaying outputs ----
                            mainPanel(
                              
-                             tableOutput("table")
+                             DT::dataTableOutput('table')
                              
-                           ))
+                           )),
+                  tabPanel("Visualization", "This panel is intentionally left blank")
                   
                   
                 ) # navbarPage
+       
 ) # fluidPage
 
 
@@ -191,40 +194,6 @@ server <- function(input, output) {
 
   })
   
-  output$poptable <- DT::renderDataTable(
-    DT::datatable(
-      pop_65above, options = list(
-        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
-        pageLength = 15
-      )
-    )
-  )
-  
-  output$community_clubs <- DT::renderDataTable(
-    DT::datatable(
-      eldercare_supply_nogeo, options = list(
-        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
-        pageLength = 15
-      )
-    )
-  )
-  output$eldercare <- DT::renderDataTable(
-    DT::datatable(
-      eldercare_supply_nogeo, options = list(
-        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
-        pageLength = 15
-      )
-    )
-  )
-  output$chas <- DT::renderDataTable(
-    DT::datatable(
-      chas_supply_nogeo, options = list(
-        lengthMenu = list(c(5, 15, -1), c('5', '15', 'All')),
-        pageLength = 15
-      )
-    )
-  )
-  
   datasetInput <- reactive({
     switch(input$dataset,
            "Population (65 Above)" = pop_65above,
@@ -233,10 +202,14 @@ server <- function(input, output) {
            "Community Clubs" = community_club_supply_nogeo)
   })
   
-  output$table <- renderTable({
-    datasetInput()
-  })
-  
+  output$table <- DT::renderDataTable(
+    DT::datatable(
+      datasetInput(), options = list(
+        lengthMenu = list(c(5, 10, -1), c('5', '10', 'All')),
+        pageLength = 10
+      )
+    )
+  )
 }
 
 # shinyApp()
