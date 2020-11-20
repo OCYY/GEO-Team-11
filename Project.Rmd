@@ -70,7 +70,7 @@ for(p in packages){
 ```
 
 ```{r}
-# Scraping test (from ah kam's link)
+# Scraping test 
 # get_item <- function(html){
 #       html %>%
 #         # The relevant tag
