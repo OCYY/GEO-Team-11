@@ -68,25 +68,50 @@ mpsz3414_65Above <- left_join(mpsz3414,pop_65above,
                               by=c("SUBZONE_N" = "SZ"))
 
 
-# mpsz3414_65Above_sp <- as_Spatial(mpsz3414_65Above)
-# 
-# # Converting the spatial point data frame into generic sp format
-# mpsz3414_65Above_sp <- as(mpsz3414_65Above_sp, "SpatialPoints")
-# 
-# #Converting the generic sp format into spatstat's ppp format
-# ppp_mpsz3414_65Above <- as(mpsz3414_65Above_sp, "ppp")
-# 
-# # Create owin to confine analysis 
-# mpsz_owin <- as(mpsz3414_65Above, "owin")
-# 
-# mpsz3414_65Above_ppp <- ppp_mpsz3414_65Above[mpsz_owin]
-# 
-# kde_mpsz3414_65Above <- density(mpsz3414_65Above_ppp, sigma=bw.diggle, edge=TRUE, kernel="gaussian")
-# gridded_kde_mpsz3414_65Above <- as.SpatialGridDataFrame.im(kde_mpsz3414_65Above)
-# kde_mpsz3414_65Above_raster <- raster(gridded_kde_mpsz3414_65Above)
-# projection(kde_mpsz3414_65Above_raster) <- CRS("+init=EPSG:3414")
+mpszB <- readOGR(dsn="../data",
+                 layer = "MP14_SUBZONE_WEB_PL")
+sp_eldercare <- as_Spatial(eldercare3414)
+sp_chas <- as_Spatial(chas_clinics3413)
+sp_community <- as_Spatial(community_club3414)
+
+ppp_eldercare <- as(sp_eldercare, "ppp")
+ppp_chas <- as(sp_chas, "ppp")
+ppp_community <- as(sp_community, "ppp")
+
+mpsz_owin <- as(mpszB, "owin")
+
+eldercare_ppp = ppp_eldercare[mpsz_owin]
+chas_ppp = ppp_chas[mpsz_owin]
+community_ppp = ppp_community[mpsz_owin]
+
+eldercare_ppp.km <- rescale(eldercare_ppp, 1000, "km")
+chas_ppp.km <- rescale(chas_ppp, 1000, "km")
+community_ppp.km <- rescale(community_ppp, 1000, "km")
+
+kde_eldercare.bw <- density(eldercare_ppp.km, sigma=bw.diggle, edge=TRUE, kernel="gaussian")
+kde_chas.bw  <- density(chas_ppp.km, sigma=bw.diggle, edge=TRUE, kernel="gaussian")
+kde_community.bw  <- density(community_ppp.km, sigma=bw.diggle, edge=TRUE, kernel="gaussian")
+
+gridded_kde_eldercare_bw <- as.SpatialGridDataFrame.im(kde_eldercare.bw)
+gridded_kde_chas_bw <- as.SpatialGridDataFrame.im(kde_chas.bw)
+gridded_kde_community <- as.SpatialGridDataFrame.im(kde_community.bw)
 
 
+kde_eldercare_bw_raster <- raster(gridded_kde_eldercare_bw)
+kde_chas_bw_raster <- raster(gridded_kde_chas_bw)
+kde_community_bw_raster<- raster(gridded_kde_community)
+
+projection(kde_eldercare_bw_raster) <- CRS("+init=EPSG:3414")
+projection(kde_chas_bw_raster) <- CRS("+init=EPSG:3414")
+projection(kde_community_bw_raster) <- CRS("+init=EPSG:3414")
+
+# extent(kde_eldercare_bw_raster) <- extent(c(kde_eldercare_bw_raster, xmax(kde_eldercare_bw_raster), ymin(kde_eldercare_bw_raster), ymax(kde_eldercare_bw_raster))*1000)
+# projection(kde_eldercare_bw_raster) <- gsub("units=km", "units=m", projection(kde_eldercare_bw_raster))
+
+# extent(kde_chas_bw_raster) <- extent(c(kde_chas_bw_raster, xmax(kde_chas_bw_raster), ymin(kde_chas_bw_raster), ymax(kde_chas_bw_raster))*1000)
+# projection(kde_chas_bw_raster) <- gsub("units=km", "units=m", projection(kde_chas_bw_raster))
+# extent(kde_community_bw_raster) <- extent(c(kde_community_bw_raster, xmax(kde_community_bw_raster), ymin(kde_community_bw_raster), ymax(kde_community_bw_raster))*1000)
+# projection(kde_community_bw_raster) <- gsub("units=km", "units=m", projection(kde_community_bw_raster))
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("paper"),
@@ -154,7 +179,13 @@ ui <- fluidPage(theme = shinytheme("paper"),
                                                 outputId = "demandmap"
                                               )
                                        )
-                                     )
+                                     ),
+                                     fluidRow((
+                                       column(10,
+                                              leafletOutput(
+                                                outputId="kde"
+                                              ))
+                                     ))
                                      
                              
                            ) # mainPanel
@@ -216,6 +247,11 @@ server <- function(input, output) {
       tm_polygons("65_Above")
   )
   
+  output$kde <- renderTmap(
+    # s/pplot(gridded_kde_eldercare_bw)
+      # tm_raster("v") +
+      # tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
+  )
   
   
   
