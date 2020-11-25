@@ -73,6 +73,36 @@ mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
 mpsz3414$`CHAS_CLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3413))
 mpsz3414_65Above <- left_join(mpsz3414, pop_65above, by=c("SUBZONE_N" = "SZ"))
 
+#<----------------------------------------------for kde---------------------------------------->
+mpszB <- readOGR(dsn = "../data", layer="MP14_SUBZONE_WEB_PL")
+
+sp_chas <- as_Spatial(chas_clinics3413)
+sp_eldercare <- as_Spatial(eldercare3414)
+sp_cc <- as_Spatial(community_club3414)
+
+chas_sp <- as(sp_chas, "SpatialPoints")
+eldercare_sp <- as(sp_eldercare, "SpatialPoints")
+cc_sp <- as(sp_cc, "SpatialPoints")
+
+ppp_chas <- as(chas_sp, "ppp")
+ppp_eldercare <- as(eldercare_sp, "ppp")
+ppp_cc <- as(cc_sp, "ppp")
+
+ppp_chas_jit <- rjitter(ppp_chas, retry=TRUE, nsim=1, drop=TRUE)
+ppp_eldercare_jit <- rjitter(ppp_eldercare, retry=TRUE, nsim=1, drop=TRUE)
+ppp_cc_jit <- rjitter(ppp_cc, retry=TRUE, nsim=1, drop=TRUE)
+
+sp_mpszB <- as(mpszB, "SpatialPolygons")
+
+mpsz_owin <- as(mpszB, "owin")
+
+chas_ppp = ppp_chas_jit[mpsz_owin]
+eldercare_ppp = ppp_eldercare_jit[mpsz_owin]
+cc_ppp = ppp_cc_jit[mpsz_owin]
+
+
+#<--------------------------------------------end for kde---------------------------------------->
+
 # Define UI
 ui <- fluidPage(theme = shinytheme("paper"),
                 navbarPage(
@@ -103,7 +133,7 @@ ui <- fluidPage(theme = shinytheme("paper"),
                            
                            
                            # Main panel for displaying outputs ----
-                           mainPanel(
+                           mainPanel(width=10,
                              DT::dataTableOutput('table')
                            )),
                   
@@ -112,28 +142,48 @@ ui <- fluidPage(theme = shinytheme("paper"),
                                        choices = c("CHAS Clinics", 
                                                    "Community Clubs",
                                                    "Eldercare Services")),
-                           mainPanel(fluid=TRUE,
+                           mainPanel(width=10,fluid=TRUE,
                                      fluidRow(
-                                       column(
-                                         6, class = "well",
-                                         leafletOutput(
+                                       column(6, tmapOutput(
                                            outputId = "supplymap"
                                          )
                                        ),
-                                       column(
-                                         6, class = "well",
-                                         leafletOutput(
+                                       column(6,tmapOutput(
                                            outputId = "demandmap"
                                          )
                                        )
                                      )
-                           ))
+                           )),
+                  tabPanel("Kernel Density Estimation", 
+                           fluidRow(
+                             column(4, 
+                                    selectInput("kdefacilityselect", "Select Facility to Analyse:",
+                                                choices = c("CHAS Clinics", 
+                                                            "Community Clubs",
+                                                            "Eldercare Services"))
+                             ),
+                             column(4,
+                                    selectInput("kdezoneselect", "Select Planning Area to Analyse:",
+                                                choices = c(unique(mpsz3414_65Above$PLN_AREA_N)))
+                                    
+                             )
+                           ),
+                           
+                           mainPanel(
+                             column(6,
+                                    tmapOutput(
+                                      outputId = "kdemap"
+                                    )
+                             )
+                           )
+                           
+                  )
                 ) # navbarPage
 ) # fluidPage
 
 # Define server function  
 server <- function(input, output) {
-  
+#<------------------------View Data--------------------------->
   datasetInput <- reactive({
     switch(input$dataset,
            "Population (65 Above)" = pop_65above,
@@ -151,6 +201,8 @@ server <- function(input, output) {
     )
   )
   
+  
+#<-------------------Supply and Demand------------------------->
   observe({
     
     x<-input$mapset
@@ -184,7 +236,57 @@ server <- function(input, output) {
     tm_shape(mpsz3414_65Above)+
       tm_polygons("65_Above")
   )
-  
+#<--------------------------KDE-------------------------------->
+  # kdefacilityselect <- reactive({
+  #   if (input$kdefacilityselect=="CHAS Clinics") {
+  #     chas_ppp
+  #   }
+  #   else if (input$kdefacilityselect=="Community Clubs") {
+  #     cc_ppp
+  #   }else {
+  #     eldercare_ppp 
+  #   }
+  # })
+  observe({
+    label<-input$kdefacilityselect
+    facility<-input$kdefacilityselect
+    zone <- input$kdezoneselect
+    if(is.null(facility))
+      facility<-character(0)
+    
+    if(facility =="Community Clubs"){
+      facility= cc_ppp
+    }else if(facility =="CHAS Clinics"){
+      facility= chas_ppp
+    }else{
+      facility= eldercare_ppp
+    }
+    area = mpszB[mpszB@data$PLN_AREA_N == zone,]
+    area_sp = as(area, "SpatialPolygons")
+    area_owin = as(area_sp, "owin")
+    facility_area_ppp = facility[area_owin]
+    # if (is.na(facility_area_ppp@data)){
+    #   facility_area_ppp<-na.omit(facility_area_ppp)
+    # }
+    facility_area_ppp.km <- rescale(facility_area_ppp, 1000, "km")
+    
+    kde_facility_area <- adaptive.density(facility_area_ppp.km, method="kernel")
+    gridded_kde_facility_area <- as.SpatialGridDataFrame.im(kde_facility_area)
+    kde_facility_area_raster <- raster(gridded_kde_facility_area)
+    projection(kde_facility_area_raster) <- CRS("+init=EPSG:3414")
+    extent(kde_facility_area_raster) <- extent(c(xmin(kde_facility_area_raster), xmax(kde_facility_area_raster), ymin(kde_facility_area_raster), ymax(kde_facility_area_raster))*1000)
+    projection(kde_facility_area_raster) <- gsub("units=km", "units=m", projection(kde_facility_area_raster))
+    
+    output$kdemap <- renderTmap(
+      tm_shape(kde_facility_area_raster)+
+        tm_raster(colorNA="lightgrey", showNA=FALSE, alpha=0.5, title= paste0(label," Count in ", str_to_title(zone)))+
+        tm_shape(area)+
+        tm_borders(lwd = 1)+
+        tm_basemap(group = "OpenStreetMap")+
+        tm_layout(main.title="KDE of Facility")
+    )
+    
+  })
 } # server
 
 # Run the app ----
