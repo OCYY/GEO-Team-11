@@ -166,15 +166,27 @@ ui <- fluidPage(theme = shinytheme("paper"),
                                     selectInput("kdezoneselect", "Select Planning Area to Analyse:",
                                                 choices = c(unique(mpsz3414_65Above$PLN_AREA_N)))
                                     
+                             ),
+                             column(4,
+                                    selectInput("analysis_method", "Analysis Method:",
+                                                  choices = c("G-Function", 
+                                                              "F-Function",
+                                                              "K-Function",
+                                                              "L-Function")),
                              )
                            ),
                            
-                           mainPanel(
-                             column(6,
-                                    tmapOutput(
-                                      outputId = "kdemap"
-                                    )
-                             )
+                           mainPanel(fluid=TRUE,
+                                     fluidRow(
+                                       column(width=6,tmapOutput(
+                                         outputId = "kdemap"
+                                       )
+                                       ),
+                                       column(width=6,plotOutput(
+                                         outputId = "secondordermap"
+                                       )
+                                       )
+                                     )
                            )
                            
                   )
@@ -236,7 +248,7 @@ server <- function(input, output) {
     tm_shape(mpsz3414_65Above)+
       tm_polygons("65_Above")
   )
-#<--------------------------KDE-------------------------------->
+#<-----------------------------first and second order analysis-------------------------------->
   # kdefacilityselect <- reactive({
   #   if (input$kdefacilityselect=="CHAS Clinics") {
   #     chas_ppp
@@ -250,7 +262,9 @@ server <- function(input, output) {
   observe({
     label<-input$kdefacilityselect
     facility<-input$kdefacilityselect
+    analysis<-input$analysis_method
     zone <- input$kdezoneselect
+    
     if(is.null(facility))
       facility<-character(0)
     
@@ -265,11 +279,9 @@ server <- function(input, output) {
     area_sp = as(area, "SpatialPolygons")
     area_owin = as(area_sp, "owin")
     facility_area_ppp = facility[area_owin]
-    # if (is.na(facility_area_ppp@data)){
-    #   facility_area_ppp<-na.omit(facility_area_ppp)
-    # }
-    facility_area_ppp.km <- rescale(facility_area_ppp, 1000, "km")
     
+    #<--------------------------------kde---------------------------------->
+    facility_area_ppp.km <- rescale(facility_area_ppp, 1000, "km")
     kde_facility_area <- adaptive.density(facility_area_ppp.km, method="kernel")
     gridded_kde_facility_area <- as.SpatialGridDataFrame.im(kde_facility_area)
     kde_facility_area_raster <- raster(gridded_kde_facility_area)
@@ -285,6 +297,39 @@ server <- function(input, output) {
         tm_basemap(group = "OpenStreetMap")+
         tm_layout(main.title="KDE of Facility")
     )
+    
+    #<--------------------------------g,f,k,l function---------------------------------->
+    if(is.null(analysis))
+      anlaysis<-character(0)
+    
+    if(analysis == "G-Function"){
+      facility_area.csr <- envelope(facility_area_ppp, Gest, correction = "all", nsim = 99)
+      output$secondordermap <- renderPlot({
+        plot(facility_area.csr)
+      })
+    }else if(analysis == "F-Function"){
+      facility_area.csr <- envelope(facility_area_ppp, Fest, correction = "all", nsim = 99)
+      output$secondordermap <- renderPlot({
+        plot(facility_area.csr)
+      })
+    }else if(analysis == "K-Function"){
+      facility_area.csr <- envelope(facility_area_ppp, Kest, nsim = 99) 
+      output$secondordermap <- renderPlot({
+        plot(facility_area.csr, . - r ~ r, 
+             xlab="d", ylab="K(d)-r", xlim=c(0,500))
+      })
+    }else if(analysis == "L-Function"){
+      facility_area.csr <- envelope(facility_area_ppp, Lest, nsim = 99)
+      output$secondordermap <- renderPlot({
+        plot(facility_area.csr, . - r ~ r, 
+             xlab="d", ylab="L(d)-r", xlim=c(0,500))
+      })
+    }
+    
+    output$secondordermap <- renderPlot({
+      plot(facility_area.csr)
+    })
+    
     
   })
 } # server
