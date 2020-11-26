@@ -1,5 +1,5 @@
 # Load R packages
-packages = c('shiny', 'shinythemes', 'leaflet', 'DT', 'sp', 'rgeos', 'sf', 'rgdal', 'tidyverse', 'tmap', 'maptools', 'raster','spatstat', 'httr', 'rvest')
+packages = c('shiny', 'shinythemes', 'leaflet', 'DT', 'sp', 'rgeos', 'sf', 'rgdal', 'tidyverse', 'tmap', 'maptools', 'raster','spatstat', 'httr', 'rvest','GWmodel','lctools')
 for (p in packages){
   if(!require(p, character.only = T)){
     install.packages(p)
@@ -20,9 +20,9 @@ population20_tidy <- population20 %>%
   mutate(TOTAL = rowSums(.[3:21]))
 
 pop_65above <- population20_tidy %>%
-  mutate(`65_Above` = as.integer(rowSums(.[16:21]))) %>%
+  mutate(`senior_pop` = as.integer(rowSums(.[16:21]))) %>%
   mutate_at(.vars = vars(PA,SZ), .funs = funs(toupper))%>%
-  dplyr::select(PA, SZ, `65_Above`) 
+  dplyr::select(PA, SZ, `senior_pop`) 
 
 mpsz <- st_read(dsn = "../data", layer = "MP14_SUBZONE_WEB_PL")
 mpsz3414 <- st_transform(mpsz, 3414)
@@ -72,7 +72,7 @@ mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414
 mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
 mpsz3414$`CHAS_CLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3413))
 mpsz3414_65Above <- left_join(mpsz3414, pop_65above, by=c("SUBZONE_N" = "SZ"))
-
+mpsz3414_65Above <- mpsz3414_65Above[!is.na(mpsz3414_65Above$senior_pop), ]
 #<----------------------------------------------for kde---------------------------------------->
 mpszB <- readOGR(dsn = "../data", layer="MP14_SUBZONE_WEB_PL")
 
@@ -101,7 +101,31 @@ eldercare_ppp = ppp_eldercare_jit[mpsz_owin]
 cc_ppp = ppp_cc_jit[mpsz_owin]
 
 
-#<--------------------------------------------end for kde---------------------------------------->
+#<--------------------------------------------for gwc---------------------------------------->
+mpsz3414_65Above$'senior_pop'[is.na(mpsz3414_65Above$'senior_pop')] = 0
+sp_mpsz3414_65Above <- st_set_geometry(mpsz3414_65Above, NULL)
+sp_mpsz3414_65Above <- SpatialPointsDataFrame(data=sp_mpsz3414_65Above,coords=sp_mpsz3414_65Above[,12:13])
+proj4string(sp_mpsz3414_65Above) <- CRS("+init=epsg:3414")
+
+drawmap2 <- function(spdf,var) {
+  rescale <- function(x) (x + max(abs(x)))/(2*max(abs(x)))
+  colmap <- colorRamp(brewer.pal(9,'RdYlBu'))
+  # This part plots the map and writes the title
+  plot(spdf,pch='')
+  plot(mpsz,col='lightgrey', add=TRUE)
+  plot(spdf,pch=16,cex=0.8,col=rgb(colmap(rescale(var)),max=255),add=TRUE)
+  # This part plots the legend - generaly the fiddliest part 
+  p1 <- rep(-10.94,5)
+  p2 <- 63.305 -  seq(0,2.4,l=5)
+  rect(1,1,1,1,col='lightgrey')
+  varvals <- seq(-max(abs(var)),max(abs(var)),l=5)
+  varlabs <- sprintf('%5.1f',varvals)
+  varcols <- rgb(colmap(rescale(varvals)),max=255)
+  text(p1+2.6,p2,varlabs,pos=2,cex=0.8)
+  points(p1,p2,pch=16,col=varcols)
+}
+
+
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("paper"),
@@ -189,7 +213,26 @@ ui <- fluidPage(theme = shinytheme("paper"),
                                      )
                            )
                            
-                  )
+                  ),
+                  tabPanel("GWC", 
+                           selectInput("gwc_data", "Select Data to Analyse:",
+                                       choices = c("CHAS Clinics", 
+                                                   "Community Clubs",
+                                                   "Eldercare Services")),
+                           radioButtons("gwc_type", "GWC type:",
+                                        c("Pearson Correlation" = "pearson",
+                                          "Spearman Correlation" = "spearman")),
+                           sliderInput("bandwidth", "Bandwidth:",
+                                       min = 0, max = 50,
+                                       value = 5),
+                           mainPanel(fluid=TRUE,
+                                     fluidRow(
+                                       column(12,plotOutput(
+                                         # height = 600,
+                                         outputId = "gwcmap"
+                                       ))
+                                     )
+                           ))
                 ) # navbarPage
 ) # fluidPage
 
@@ -216,7 +259,6 @@ server <- function(input, output) {
   
 #<-------------------Supply and Demand------------------------->
   observe({
-    
     x<-input$mapset
     
     if(is.null(x))
@@ -228,14 +270,12 @@ server <- function(input, output) {
           tm_polygons("COMMUNITY_CLUBS")
       )
     }
-    
     else if (x =="CHAS Clinics"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
           tm_polygons("CHAS_CLINIC")
       )
     }
-    
     else{
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
@@ -246,19 +286,9 @@ server <- function(input, output) {
   
   output$demandmap <- renderTmap (
     tm_shape(mpsz3414_65Above)+
-      tm_polygons("65_Above")
+      tm_polygons("senior_pop")
   )
 #<-----------------------------first and second order analysis-------------------------------->
-  # kdefacilityselect <- reactive({
-  #   if (input$kdefacilityselect=="CHAS Clinics") {
-  #     chas_ppp
-  #   }
-  #   else if (input$kdefacilityselect=="Community Clubs") {
-  #     cc_ppp
-  #   }else {
-  #     eldercare_ppp 
-  #   }
-  # })
   observe({
     label<-input$kdefacilityselect
     facility<-input$kdefacilityselect
@@ -329,8 +359,60 @@ server <- function(input, output) {
     output$secondordermap <- renderPlot({
       plot(facility_area.csr)
     })
+  })
+  
+  #<-------------------------------------gwc------------------------------------->
+  observe({
+    gwc_type<-input$gwc_type
+    gwc_data<-input$gwc_data
+    bandwidth <- input$bandwidth
+    localstats1 <- gwss(sp_mpsz3414_65Above,vars=c("senior_pop","CHAS_CLINIC","COMMUNITY_CLUBS","ELDERCARE"),bw=bandwidth,adaptive = TRUE,quantile = TRUE)
+    proj4string(localstats1$SDF) <- CRS("+init=epsg:3414")
     
-    
+    if(is.null(gwc_data))
+      gwc_data<-character(0)
+    if(is.null(gwc_type))
+      gwc_type<-character(0)
+
+    if(gwc_data =="Community Clubs"){
+      if(gwc_type =="pearson"){
+        dud <- is.nan(localstats1$SDF$Corr_senior_pop.COMMUNITY_CLUBS)
+        output$gwcmap <- renderPlot(
+          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_senior_pop.COMMUNITY_CLUBS[!dud])
+        )
+      }else{
+        dud <- is.nan(localstats1$SDF$Spearman_rho_senior_pop.COMMUNITY_CLUBS)
+        output$gwcmap <- renderPlot(
+          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_senior_pop.COMMUNITY_CLUBS[!dud])
+        )
+      }
+    }
+    else if (gwc_data =="CHAS Clinics"){
+      if(gwc_type =="pearson"){
+        dud <- is.nan(localstats1$SDF$Corr_senior_pop.CHAS_CLINIC)
+        output$gwcmap <- renderPlot(
+          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_senior_pop.CHAS_CLINIC[!dud])
+        )
+      }else{
+        dud <- is.nan(localstats1$SDF$Spearman_rho_senior_pop.CHAS_CLINIC)
+        output$gwcmap <- renderPlot(
+          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_senior_pop.CHAS_CLINIC[!dud])
+        )
+      }
+    }
+    else{
+      if(gwc_type =="pearson"){
+        dud <- is.nan(localstats1$SDF$Corr_senior_pop.ELDERCARE)
+        output$gwcmap <- renderPlot(
+          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_senior_pop.ELDERCARE[!dud])
+        )
+      }else{
+        dud <- is.nan(localstats1$SDF$Spearman_rho_senior_pop.ELDERCARE)
+        output$gwcmap <- renderPlot(
+          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_senior_pop.ELDERCARE[!dud])
+        )
+      }
+    }
   })
 } # server
 
