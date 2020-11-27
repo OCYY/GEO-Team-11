@@ -146,25 +146,32 @@ proj4string(sp_mpsz3414_65Above) <- CRS("+init=epsg:3414")
 drawmap2 <- function(spdf,var) {
   rescale <- function(x) (x + max(abs(x)))/(2*max(abs(x)))
   colmap <- colorRamp(brewer.pal(9,'RdYlBu'))
-  # This part plots the map and writes the title
-  plot(spdf,pch='')
+  # This part plots the map
+  sgmap <- openmap(localstats1[["SDF"]]@coords)
+  plot(sgmap)
+  plot(spdf,pch='',add=TRUE)
   plot(mpsz,col='lightgrey', add=TRUE)
-  plot(spdf,pch=16,cex=0.8,col=rgb(colmap(rescale(var)),max=255),add=TRUE)
-  # This part plots the legend - generaly the fiddliest part 
+  plot(spdf,pch=16,cex=0.8,col=rgb(colmap(rescale(var)),max=255),add=TRUE,height=600)
+  # This part plots the legend
   p1 <- rep(-10.94,5)
   p2 <- 63.305 -  seq(0,2.4,l=5)
-  rect(p1[1]-0.4,p2[5]-0.4,p1[1]+2.6,p2[1]+0.4,col='lightgrey')
-  varvals <- seq(-max(abs(var)),max(abs(var)),l=5)
+  varvals <- seq(min(var),max(var),l=5)
   varlabs <- sprintf('%5.1f',varvals)
-  varcols <- rgb(colmap(rescale(varvals)),max=255)
-  text(p1+2.6,p2,varlabs,pos=2,cex=0.8)
-  points(p1,p2,pch=16,col=varcols)
+  legend("topleft", legend=c(varlabs),title="Correlation",col=rgb(colmap(rescale(var)),max=255),pch=16,cex=1.2)  
+  # rect("topleft",col='lightgrey')
+  # varvals <- seq(min(var),max(var),l=5)
+  # varlabs <- sprintf('%5.1f',varvals)
+  # varcols <- rgb(colmap(rescale(varvals)),max=255)
+  # text(0,100,-10,10,cex=0.8)
+  # points(p1,p2,pch=16,col=varcols)
+  # box(which = "plot",lty = "solid")
 }
 
 
 
 # Define UI
-ui <- fluidPage(theme = shinytheme("paper"),
+# title = div(img(src="../public/images/icon.png"),
+ui <- fluidPage(theme = shinytheme("united"),
                 navbarPage(
                   "Old but Gold",
                   tabPanel("Overview",
@@ -175,9 +182,16 @@ ui <- fluidPage(theme = shinytheme("paper"),
                              
                            ), # sidebarPanel
                            mainPanel(
-                             h1("Header 1"),
-                             
-                             h4("Output 1"),
+                             h3("IS415 Geospatial Analytics and Applications"),
+                             br(),
+                             h4("Old but Gold"),
+                             p("Through this application, it is intended to help policymakers to determine the availability
+                               and adequecy of essential amenities to support and empower the seniors in Singapore."),
+                             p("1. Comparison of supply and demand of various facilities and the aging population 
+                               (aged 65 and above)."),
+                             p("2. Identify areas with high distribution of specific facility in a specific subzone."),
+                             p("3. Visualisation of geographically weighted correlation between specific facility across
+                               Singapore."),
                              verbatimTextOutput("txtout"),
                              
                            ) # mainPanel
@@ -436,70 +450,41 @@ server <- function(input, output) {
       gwc_data<-character(0)
     if(is.null(gwc_type))
       gwc_type<-character(0)
-    
     if(gwc_data =="Community Clubs"){
       if(gwc_type =="pearson"){
-        dud <- is.nan(localstats1$SDF$Corr_SENIOR_POPULATION.COMMUNITY_CLUBS)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_SENIOR_POPULATION.COMMUNITY_CLUBS[!dud])
-        )
-      }else{
-        dud <- is.nan(localstats1$SDF$Spearman_rho_SENIOR_POPULATION.COMMUNITY_CLUBS)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_SENIOR_POPULATION.COMMUNITY_CLUBS[!dud])
-        )
+        column_name <- 'Corr_SENIOR_POPULATION.COMMUNITY_CLUBS'
+      }else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.COMMUNITY_CLUBS'
+      }
+    }else if(gwc_data =="CHAS_Clinics"){
+      if(gwc_type =="pearson"){
+        column_name <- 'Corr_SENIOR_POPULATION.CHAS_CLINIC'
+      }else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.CHAS_CLINIC'
+      }
+    }else if(gwc_data =="Eldercare Services"){
+      if(gwc_type =="pearson"){
+        column_name <- 'Corr_SENIOR_POPULATION.ELDERCARE'
+      }else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.ELDERCARE'
+      }
+    }else if(gwc_data =="Residents Committee"){
+      if(gwc_type =="pearson"){
+        column_name <- 'Corr_SENIOR_POPULATION.RC'
+      }else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.RC'
+      }
+    }else{
+      if(gwc_type =="pearson"){
+        column_name <- 'Corr_SENIOR_POPULATION.GYM'
+      }else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.GYM'
       }
     }
-    else if (gwc_data =="CHAS Clinics"){
-      if(gwc_type =="pearson"){
-        dud <- is.nan(localstats1$SDF$Corr_SENIOR_POPULATION.CHAS_CLINIC)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_SENIOR_POPULATION.CHAS_CLINIC[!dud])
-        )
-      }else{
-        dud <- is.nan(localstats1$SDF$Spearman_rho_SENIOR_POPULATION.CHAS_CLINIC)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_SENIOR_POPULATION.CHAS_CLINIC[!dud])
-        )
-      }
-    }
-    else if (gwc_data == "Eldercare Services"){
-      if(gwc_type =="pearson"){
-        dud <- is.nan(localstats1$SDF$Corr_SENIOR_POPULATION.ELDERCARE)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_SENIOR_POPULATION.ELDERCARE[!dud])
-        )
-      }else{
-        dud <- is.nan(localstats1$SDF$Spearman_rho_SENIOR_POPULATION.ELDERCARE)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_SENIOR_POPULATION.ELDERCARE[!dud])
-        )
-      }
-    }else if (gwc_data =="Residents Committee"){
-      if(gwc_type =="pearson"){
-        dud <- is.nan(localstats1$SDF$Corr_SENIOR_POPULATION.RC)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_SENIOR_POPULATION.RC[!dud])
-        )
-      }else{
-        dud <- is.nan(localstats1$SDF$Spearman_rho_SENIOR_POPULATION.RC)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_senior_pop.RC[!dud])
-        )
-      }
-    }else {
-      if(gwc_type =="pearson"){
-        dud <- is.nan(localstats1$SDF$Corr_SENIOR_POPULATION.GYM)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Corr_SENIOR_POPULATION.GYM[!dud])
-        )
-      }else{
-        dud <- is.nan(localstats1$SDF$Spearman_rho_SENIOR_POPULATION.GYM)
-        output$gwcmap <- renderPlot(
-          drawmap2(localstats1$SDF[!dud,],localstats1$SDF$Spearman_rho_senior_pop.GYM[!dud])
-        )
-      }
-    }
+    dud <- is.nan(localstats1$SDF[[column_name]])
+    output$gwcmap <- renderPlot(
+      drawmap2(localstats1$SDF[!dud,],localstats1$SDF[[column_name]][!dud])
+    )
   })
 } # server
 
