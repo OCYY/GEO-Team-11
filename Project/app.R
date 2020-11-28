@@ -1,6 +1,10 @@
 #<--------------------Load R packages-------------------->
 
-packages = c('shiny', 'shinythemes', 'leaflet', 'DT', 'sp', 'rgeos', 'sf', 'rgdal', 'tidyverse', 'tmap', 'maptools', 'raster','spatstat', 'httr', 'rvest','GWmodel','lctools','RColorBrewer','shinycssloaders')
+packages = c('shiny', 'shinythemes', 'leaflet', 'DT', 'sp',
+             'rgeos', 'sf', 'rgdal', 'tidyverse', 'tmap',
+             'maptools', 'raster', 'spatstat', 'httr', 'rvest',
+             'GWmodel', 'lctools', 'RColorBrewer', 'shinycssloaders')
+
 for (p in packages){
   if(!require(p, character.only = T)){
     install.packages(p)
@@ -11,6 +15,24 @@ for (p in packages){
 #<--------------------Import Data-------------------->
 
 popdata <- read_csv("../data/respopagesextod2011to2020.csv")
+mpsz <- st_read("../data/master-plan-2019-subzone-boundary-no-sea-kml.kml")
+eldercare <- st_read(dsn = "../data", layer = "ELDERCARE")
+community_club <- st_read("../data/community-clubs-kml.kml")
+chas_clinics <- st_read("../data/chas-clinics-kml.kml")
+rc <- st_read(dsn = "../data", layer = "REsIDENTSCOMMITTEE")
+gym <- st_read("../data/gyms-sg-kml.kml")
+
+#<--------------------Transforming Projections-------------------->
+
+mpsz_3414 <- st_transform(mpsz19, 3414)
+eldercare3414 <- st_transform(eldercare, 3414)
+community_club3414 <- st_transform(community_club, 3414)
+chas_clinics3414 <- st_transform(chas_clinics, 3414)
+rc3414 <- st_transform(rc, 3414)
+gym3414 <- st_transform(gym, 3414)
+
+#<--------------------Data Wrangling-------------------->
+
 population20 <- popdata %>%
   filter(Time == 2020)
 
@@ -25,33 +47,6 @@ pop_65above <- population20_tidy %>%
   mutate(`SENIOR_POPULATION` = as.integer(rowSums(.[16:21]))) %>%
   mutate_at(.vars = vars(PA,SZ), .funs = funs(toupper))%>%
   dplyr::select(PA, SZ, `SENIOR_POPULATION`) 
-
-mpsz <- st_read("../data/master-plan-2019-subzone-boundary-no-sea-kml.kml")
-mpsz_3414 <- st_transform(mpsz19, 3414)
-
-#mpsz <- st_read(dsn = "../data", layer = "MP14_SUBZONE_WEB_PL")
-#mpsz3414 <- st_transform(mpsz, 3414)
-
-eldercare <- st_read(dsn = "../data", layer = "ELDERCARE")
-eldercare3414 <- st_transform(eldercare, 3414)
-eldercare_attributes <- eldercare %>%
-  dplyr::select("NAME","ADDRESSPOS","ADDRESSSTR")
-st_geometry(eldercare_attributes) <- NULL
-
-community_club <- st_read("../data/community-clubs-kml.kml")
-community_club3414 <- st_transform(community_club, 3414)
-
-chas_clinics <- st_read("../data/chas-clinics-kml.kml")
-chas_clinics3414 <- st_transform(chas_clinics, 3414)
-
-rc <- st_read(dsn = "../data", layer = "REsIDENTSCOMMITTEE")
-rc3414 <- st_transform(rc, 3414)
-rc_attributes <- rc %>%
-  dplyr::select("NAME","ADDRESSPOS","ADDRESSSTR","ADDRESSBLO")
-st_geometry(rc_attributes) <- NULL
-
-gym <- st_read("../data/gyms-sg-kml.kml")
-gym3414 <- st_transform(gym, 3414)
 
 mpsz_3414_attributes <- lapply(X = 1:nrow(mpsz_3414), 
                                  FUN = function(x) {
@@ -86,7 +81,6 @@ chas_clinics_attributes <- chas_clinics %>%
   dplyr::select("HCI_NAME","POSTAL_CD","STREET_NAME","BLK_HSE_NO")
 st_geometry(chas_clinics_attributes) <- NULL
 
-
 community_club_attributes <- lapply(X = 1:nrow(community_club), 
                                     FUN = function(x) {
                                       community_club %>% 
@@ -103,7 +97,6 @@ community_club_attributes <- community_club %>%
   bind_cols(bind_rows(community_club_attributes)) %>%
   dplyr::select("NAME","ADDRESSPOSTALCODE","ADDRESSSTREETNAME","ADDRESSBLOCKHOUSENUMBER")
 st_geometry(community_club_attributes) <- NULL
-
 
 gym_attributes <- lapply(X = 1:nrow(gym), 
                                     FUN = function(x) {
@@ -122,6 +115,15 @@ gym_attributes <- gym %>%
   dplyr::select("NAME","ADDRESSPOSTALCODE","ADDRESSSTREETNAME","ADDRESSBLOCKHOUSENUMBER")
 st_geometry(gym_attributes) <- NULL
 
+eldercare_attributes <- eldercare %>%
+  dplyr::select("NAME","ADDRESSPOS","ADDRESSSTR")
+st_geometry(eldercare_attributes) <- NULL
+
+rc_attributes <- rc %>%
+  dplyr::select("NAME","ADDRESSPOS","ADDRESSSTR","ADDRESSBLO")
+st_geometry(rc_attributes) <- NULL
+
+#<--------------------Joining the Data-------------------->
 
 mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414))
 mpsz3414$`ELDERCARE_SERVICES` <- lengths(st_intersects(mpsz3414, eldercare3414))
@@ -132,8 +134,8 @@ mpsz3414$`GYMS`<- lengths(st_intersects(mpsz3414, gym3414))
 mpsz3414_65Above <- left_join(mpsz3414, pop_65above, by=c("SUBZONE_N" = "SZ"))
 # mpsz3414_65Above <- mpsz3414_65Above[!is.na(mpsz3414_65Above$'SENIOR_POPULATION'), ]
 
-#<----------------------------------------------for kde---------------------------------------->
-# mpszB <- readOGR(dsn = "../data", layer="MP14_SUBZONE_WEB_PL")
+#<--------------------Preprocessing for KDE-------------------->
+
 mpszB <- readOGR("../data/master-plan-2019-subzone-boundary-no-sea-kml.kml","URA_MP19_SUBZONE_NO_SEA_PL")
 mpszB <- spTransform(mpszB,CRS("+init=epsg:3414"))
 
@@ -187,7 +189,8 @@ cc_ppp = ppp_cc_jit[mpsz_owin]
 rc_ppp = ppp_rc_jit[mpsz_owin]
 gym_ppp = ppp_gym_jit[mpsz_owin]
 
-#<--------------------------------------------for gwc---------------------------------------->
+#<--------------------Preprocessing for GWC-------------------->
+
 mpsz3414_65Above$'SENIOR_POPULATION'[is.na(mpsz3414_65Above$'SENIOR_POPULATION')] = 0
 sp_mpsz3414_65Above <- st_set_geometry(mpsz3414_65Above, NULL)
 sp_mpsz3414_65Above <- SpatialPointsDataFrame(data=sp_mpsz3414_65Above,coords=sp_mpsz3414_65Above[,12:13])
@@ -215,11 +218,13 @@ drawmap2 <- function(spdf,var) {
   # box(which = "plot",lty = "solid")
 }
 
+#<---------------------------------------->
+
 facilities <- c("CHAS Clinics",
-               "Community Clubs",
-               "Eldercare Services",
-               "Gyms",
-               "Residents Committee")
+                "Community Clubs",
+                "Eldercare Services",
+                "Gyms",
+                "Residents Committee")
 
 #<--------------------UI-------------------->
 
