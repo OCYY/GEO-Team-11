@@ -1,4 +1,5 @@
-# Load R packages
+#<--------------------Load R packages-------------------->
+
 packages = c('shiny', 'shinythemes', 'leaflet', 'DT', 'sp', 'rgeos', 'sf', 'rgdal', 'tidyverse', 'tmap', 'maptools', 'raster','spatstat', 'httr', 'rvest','GWmodel','lctools','RColorBrewer','shinycssloaders')
 for (p in packages){
   if(!require(p, character.only = T)){
@@ -7,7 +8,8 @@ for (p in packages){
   library(p,character.only = T)
 }
 
-# Import Data
+#<--------------------Import Data-------------------->
+
 popdata <- read_csv("../data/respopagesextod2011to2020.csv")
 population20 <- popdata %>%
   filter(Time == 2020)
@@ -24,8 +26,11 @@ pop_65above <- population20_tidy %>%
   mutate_at(.vars = vars(PA,SZ), .funs = funs(toupper))%>%
   dplyr::select(PA, SZ, `SENIOR_POPULATION`) 
 
-mpsz <- st_read(dsn = "../data", layer = "MP14_SUBZONE_WEB_PL")
-mpsz3414 <- st_transform(mpsz, 3414)
+mpsz <- st_read("../data/master-plan-2019-subzone-boundary-no-sea-kml.kml")
+mpsz_3414 <- st_transform(mpsz19, 3414)
+
+#mpsz <- st_read(dsn = "../data", layer = "MP14_SUBZONE_WEB_PL")
+#mpsz3414 <- st_transform(mpsz, 3414)
 
 eldercare <- st_read(dsn = "../data", layer = "ELDERCARE")
 eldercare3414 <- st_transform(eldercare, 3414)
@@ -42,11 +47,27 @@ chas_clinics3414 <- st_transform(chas_clinics, 3414)
 rc <- st_read(dsn = "../data", layer = "REsIDENTSCOMMITTEE")
 rc3414 <- st_transform(rc, 3414)
 rc_attributes <- rc %>%
-  dplyr::select("ADDRESSPOS","ADDRESSSTR","NAME")
+  dplyr::select("NAME","ADDRESSPOS","ADDRESSSTR","ADDRESSBLO")
 st_geometry(rc_attributes) <- NULL
 
 gym <- st_read("../data/gyms-sg-kml.kml")
 gym3414 <- st_transform(gym, 3414)
+
+mpsz_3414_attributes <- lapply(X = 1:nrow(mpsz_3414), 
+                                 FUN = function(x) {
+                                   mpsz_3414 %>% 
+                                     slice(x) %>%
+                                     pull(Description) %>%
+                                     read_html() %>%
+                                     html_node("table") %>%
+                                     html_table(header = TRUE, trim = TRUE, dec = ".", fill = TRUE) %>%
+                                     as_tibble(.name_repair = ~ make.names(c("Attribute", "Value"))) %>% 
+                                     pivot_wider(names_from = Attribute, values_from = Value)
+                                 })
+
+mpsz_3414 <- mpsz_3414 %>%
+  bind_cols(bind_rows(mpsz_3414_attributes)) %>%
+  dplyr::select(-"Description")
 
 chas_clinics_attributes <- lapply(X = 1:nrow(chas_clinics), 
                                   FUN = function(x) {
@@ -103,22 +124,40 @@ st_geometry(gym_attributes) <- NULL
 
 
 mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414))
-mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
-mpsz3414$`CHAS_CLINIC`<- lengths(st_intersects(mpsz3414, chas_clinics3414))
-mpsz3414$`RC`<- lengths(st_intersects(mpsz3414, rc3414))
-mpsz3414$`GYM`<- lengths(st_intersects(mpsz3414, gym3414))
+mpsz3414$`ELDERCARE_SERVICES` <- lengths(st_intersects(mpsz3414, eldercare3414))
+mpsz3414$`CHAS_CLINICS`<- lengths(st_intersects(mpsz3414, chas_clinics3414))
+mpsz3414$`RESIDENTS_COMMITTEES`<- lengths(st_intersects(mpsz3414, rc3414))
+mpsz3414$`GYMS`<- lengths(st_intersects(mpsz3414, gym3414))
 
 mpsz3414_65Above <- left_join(mpsz3414, pop_65above, by=c("SUBZONE_N" = "SZ"))
-mpsz3414_65Above <- mpsz3414_65Above[!is.na(mpsz3414_65Above$'SENIOR_POPULATION'), ]
+# mpsz3414_65Above <- mpsz3414_65Above[!is.na(mpsz3414_65Above$'SENIOR_POPULATION'), ]
+
 #<----------------------------------------------for kde---------------------------------------->
-mpszB <- readOGR(dsn = "../data", layer="MP14_SUBZONE_WEB_PL")
+# mpszB <- readOGR(dsn = "../data", layer="MP14_SUBZONE_WEB_PL")
+mpszB <- readOGR("../data/master-plan-2019-subzone-boundary-no-sea-kml.kml","URA_MP19_SUBZONE_NO_SEA_PL")
+mpszB <- spTransform(mpszB,CRS("+init=epsg:3414"))
+
+mpszB_attributes <- lapply(X = 1:nrow(mpszB@data), 
+                               FUN = function(x) {
+                                 mpszB@data %>% 
+                                   slice(x) %>%
+                                   pull(Description) %>%
+                                   read_html() %>%
+                                   html_node("table") %>%
+                                   html_table(header = TRUE, trim = TRUE, dec = ".", fill = TRUE) %>%
+                                   as_tibble(.name_repair = ~ make.names(c("Attribute", "Value"))) %>% 
+                                   pivot_wider(names_from = Attribute, values_from = Value)
+                               })
+
+mpszB@data <- mpszB@data %>%
+  bind_cols(bind_rows(mpszB_attributes)) %>%
+  dplyr::select(-"Description")
 
 sp_chas <- as_Spatial(chas_clinics3414)
 sp_eldercare <- as_Spatial(eldercare3414)
 sp_cc <- as_Spatial(community_club3414)
 sp_rc <- as_Spatial(rc3414)
 sp_gym <- as_Spatial(gym3414)
-
 
 chas_sp <- as(sp_chas, "SpatialPoints")
 eldercare_sp <- as(sp_eldercare, "SpatialPoints")
@@ -140,14 +179,13 @@ ppp_gym_jit <- rjitter(ppp_gym, retry=TRUE, nsim=1, drop=TRUE)
 
 sp_mpszB <- as(mpszB, "SpatialPolygons")
 
-mpsz_owin <- as(mpszB, "owin")
+mpsz_owin <- as(sp_mpszB, "owin")
 
 chas_ppp = ppp_chas_jit[mpsz_owin]
 eldercare_ppp = ppp_eldercare_jit[mpsz_owin]
 cc_ppp = ppp_cc_jit[mpsz_owin]
 rc_ppp = ppp_rc_jit[mpsz_owin]
 gym_ppp = ppp_gym_jit[mpsz_owin]
-
 
 #<--------------------------------------------for gwc---------------------------------------->
 mpsz3414_65Above$'SENIOR_POPULATION'[is.na(mpsz3414_65Above$'SENIOR_POPULATION')] = 0
@@ -160,7 +198,7 @@ drawmap2 <- function(spdf,var) {
   colmap <- colorRamp(brewer.pal(9,'RdYlBu'))
   # This part plots the map
   plot(spdf,pch='')
-  plot(mpsz,col='lightgrey', add=TRUE)
+  plot(mpsz_3414,col='lightgrey', add=TRUE)
   plot(spdf,pch=16,cex=0.8,col=rgb(colmap(rescale(var)),max=255),add=TRUE,height=600)
   # This part plots the legend
   p1 <- rep(-10.94,5)
@@ -177,9 +215,14 @@ drawmap2 <- function(spdf,var) {
   # box(which = "plot",lty = "solid")
 }
 
+facilities <- c("CHAS Clinics",
+               "Community Clubs",
+               "Eldercare Services",
+               "Gyms",
+               "Residents Committee")
 
+#<--------------------UI-------------------->
 
-# Define UI
 # title = div(img(src="../public/images/icon.png"),
 ui <- fluidPage(theme = shinytheme("united"),
                 navbarPage("Old but Gold",windowTitle="Old but Gold",
@@ -210,11 +253,10 @@ ui <- fluidPage(theme = shinytheme("united"),
                                services, gyms, as well as residents committee."),
                              verbatimTextOutput("txtout"),
                              
-                           ) # mainPanel
-                           
-                  ), # Navbar 1, tabPanel
-                  tabPanel("View Data",icon=icon("search"),
-                           # Input: Choose dataset ----
+                           )
+                  ),
+                  
+                  tabPanel("View Data", icon = icon("search"),
                            selectInput("dataset", "Select Data to View:",
                                        choices = c("Population (65 Above)", 
                                                    "CHAS Clinics",
@@ -222,41 +264,53 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                    "Eldercare Services",
                                                    "Gyms",
                                                    "Residents Committee")),
-                           
-                           
-                           # Main panel for displaying outputs ----
-                           mainPanel(width=10,
-                                     withSpinner(DT::dataTableOutput('table'))
+                           mainPanel(
+                             width = 10,
+                             withSpinner(DT::dataTableOutput('table'))
                            )),
-                  
+
                   tabPanel("Supply and Demand Analysis", icon=icon("globe-asia"),
-                           selectInput("mapset", "Select Data to Analyse:",
-                                       choices = c("CHAS Clinics", 
-                                                   "Community Clubs",
-                                                   "Eldercare Services",
-                                                   "Gyms",
-                                                   "Residents Committee")),
-                           mainPanel(width=10,fluid=TRUE,
+                           
+                           fluidRow(
+                             column(6, 
+                                    selectInput("mapset", "Select Facility to Analyse:",
+                                                choices = facilities)
+                             ),
+                             column(6,
+                                    selectInput("binning_method", "Binning Method:",
+                                                choices=c("Standard Deviation"="sd",
+                                                                    "Equal"="equal",
+                                                                    "Pretty"="pretty",
+                                                                    "Quantile"="quantile",
+                                                                    "K-means Cluster"="kmeans",
+                                                                    "Hierarchical Cluster"="hclust",
+                                                                    "Bagged Cluster"="bclust",
+                                                                    "Fisher"="fisher",
+                                                                    "Jenks"="jenks"
+                                                )),
+                             )
+                           ),
+                           
+                           mainPanel(fluid=TRUE,
                                      fluidRow(
-                                       column(6, withSpinner(tmapOutput(
+                                       column(6,h4("Supply Analysis", align = "center"), 
+                                              withSpinner(tmapOutput(
                                            outputId = "supplymap"
                                          ))
                                        ),
-                                       column(6,withSpinner(tmapOutput(
+                                       column(6,h4("Demand Analysis", align = "center"),
+                                              withSpinner(tmapOutput(
                                            outputId = "demandmap"
                                          ))
                                        )
                                      )
                            )),
-                  tabPanel("Kernel Density Estimation", icon=icon("chart-line"),
+
+                  tabPanel("Spatial Point Pattern Analysis", icon=icon("chart-line"),
                            fluidRow(
                              column(4, 
                                     selectInput("kdefacilityselect", "Select Facility to Analyse:",
-                                                choices = c("CHAS Clinics", 
-                                                            "Community Clubs",
-                                                            "Eldercare Services",
-                                                            "Gyms",
-                                                            "Residents Committee"))
+                                                choices = facilities)
                              ),
                              column(4,
                                     selectInput("kdezoneselect", "Select Planning Area to Analyse:",
@@ -286,32 +340,41 @@ ui <- fluidPage(theme = shinytheme("united"),
                            )
                            
                   ),
-                  tabPanel("GWC", icon=icon("laptop-code"),
-                           selectInput("gwc_data", "Select Data to Analyse:",
-                                       choices = c("CHAS Clinics", 
-                                                   "Community Clubs",
-                                                   "Eldercare Services",
-                                                   "Gyms",
-                                                   "Residents Committee")),
-                           radioButtons("gwc_type", "GWC type:",
-                                        c("Pearson Correlation" = "pearson",
-                                          "Spearman Correlation" = "spearman")),
-                           sliderInput("bandwidth", "Bandwidth:",
-                                       min = 0, max = 50,
-                                       value = 5),
-                           mainPanel(fluid=TRUE,
-                                     fluidRow(
-                                       column(12,withSpinner(plotOutput(
-                                         outputId = "gwcmap"
-                                       )))
-                                     )
-                           ))
-                ) # navbarPage
-) # fluidPage
 
-# Define server function  
+                  tabPanel("Geographically Weighted Correlation", icon = icon("laptop-code"),
+                           column(3,
+                             wellPanel(
+                               selectInput(
+                                 "gwc_data", "Select Data to Analyse:",
+                                 choices = facilities
+                               ),
+                               radioButtons(
+                                 "gwc_type", "GWC type:",
+                                 c("Pearson Correlation" = "pearson",
+                                   "Spearman Correlation" = "spearman")
+                               ),
+                               sliderInput(
+                                 "bandwidth", "Bandwidth:",
+                                 min = 0, max = 50,
+                                 value = 10
+                               )
+                             )
+                           ),
+                             
+                           column(9,
+                             withSpinner(plotOutput(
+                               outputId = "gwcmap"
+                             ))
+                           )
+                ))
+)
+
+#<--------------------Server-------------------->
+
 server <- function(input, output) {
-#<------------------------View Data--------------------------->
+  
+#<--------------------View Data-------------------->
+  
   datasetInput <- reactive({
     switch(input$dataset,
            "Population (65 Above)" = pop_65above,
@@ -332,10 +395,11 @@ server <- function(input, output) {
     )
   )
   
+#<--------------------Supply and Demand Analysis-------------------->
   
-#<-------------------Supply and Demand------------------------->
   observe({
     x<-input$mapset
+    bin<-input$binning_method
     
     if(is.null(x))
       x<-character(0)
@@ -343,40 +407,67 @@ server <- function(input, output) {
     if(x =="Community Clubs"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
-          tm_polygons("COMMUNITY_CLUBS")
+          tm_polygons("COMMUNITY_CLUBS",style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
+      )
+      output$demandmap <- renderTmap (
+        tm_shape(mpsz3414_65Above)+
+          tm_polygons("SENIOR_POPULATION",style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
       )
     }
     else if (x =="CHAS Clinics"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
-          tm_polygons("CHAS_CLINIC")
+          tm_polygons("CHAS_CLINICS", style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
+      )
+      output$demandmap <- renderTmap (
+        tm_shape(mpsz3414_65Above)+
+          tm_polygons("SENIOR_POPULATION",style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
       )
     }
     else if (x =="Eldercare Services"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
-          tm_polygons("ELDERCARE")
+          tm_polygons("ELDERCARE_SERVICES", style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
+      )
+      output$demandmap <- renderTmap (
+        tm_shape(mpsz3414_65Above)+
+          tm_polygons("SENIOR_POPULATION",style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
       )
     }
     else if (x == "Residents Committee"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
-          tm_polygons("RC")
+          tm_polygons("RESIDENTS_COMMITTEES", style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
+      )
+      output$demandmap <- renderTmap (
+        tm_shape(mpsz3414_65Above)+
+          tm_polygons("SENIOR_POPULATION",style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
       )
     }
     else {
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
-          tm_polygons("GYM")
+          tm_polygons("GYMS", style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
+      )
+      output$demandmap <- renderTmap (
+        tm_shape(mpsz3414_65Above)+
+          tm_polygons("SENIOR_POPULATION",style=bin)+
+          tm_layout(legend.position = c("right", "bottom"))
       )
     }
   })
+
+#<--------------------Spatial Point Pattern Analysis-------------------->
   
-  output$demandmap <- renderTmap (
-    tm_shape(mpsz3414_65Above)+
-      tm_polygons("SENIOR_POPULATION")
-  )
-#<-----------------------------first and second order analysis-------------------------------->
   observe({
     label<-input$kdefacilityselect
     facility<-input$kdefacilityselect
@@ -388,13 +479,17 @@ server <- function(input, output) {
     
     if(facility =="Community Clubs"){
       facility= cc_ppp
-    }else if(facility =="CHAS Clinics"){
+    }
+    else if(facility =="CHAS Clinics"){
       facility= chas_ppp
-    }else if(facility =="Eldercare Services"){
+    }
+    else if(facility =="Eldercare Services"){
       facility= eldercare_ppp
-    }else if(facility =="Residents Committee") {
+    }
+    else if(facility =="Residents Committee") {
       facility= rc_ppp
-    }else {
+    }
+    else {
       facility= gym_ppp
     }
     
@@ -403,7 +498,8 @@ server <- function(input, output) {
     area_owin = as(area_sp, "owin")
     facility_area_ppp = facility[area_owin]
     
-    #<--------------------------------kde---------------------------------->
+#<--------------------Kernel Density Estimation-------------------->
+    
     facility_area_ppp.km <- rescale(facility_area_ppp, 1000, "km")
     kde_facility_area <- adaptive.density(facility_area_ppp.km, method="kernel")
     gridded_kde_facility_area <- as.SpatialGridDataFrame.im(kde_facility_area)
@@ -421,7 +517,8 @@ server <- function(input, output) {
         tm_layout(main.title="KDE of Facility")
     )
     
-    #<--------------------------------g,f,k,l function---------------------------------->
+#<--------------------Second Order Analysis-------------------->
+    
     if(is.null(analysis))
       anlaysis<-character(0)
     
@@ -430,18 +527,21 @@ server <- function(input, output) {
       output$secondordermap <- renderPlot({
         plot(facility_area.csr)
       })
-    }else if(analysis == "F-Function"){
+    }
+    else if(analysis == "F-Function"){
       facility_area.csr <- envelope(facility_area_ppp, Fest, correction = "all", nsim = 99)
       output$secondordermap <- renderPlot({
         plot(facility_area.csr)
       })
-    }else if(analysis == "K-Function"){
+    }
+    else if(analysis == "K-Function"){
       facility_area.csr <- envelope(facility_area_ppp, Kest, nsim = 99) 
       output$secondordermap <- renderPlot({
         plot(facility_area.csr, . - r ~ r, 
              xlab="d", ylab="K(d)-r", xlim=c(0,500))
       })
-    }else if(analysis == "L-Function"){
+    }
+    else if(analysis == "L-Function"){
       facility_area.csr <- envelope(facility_area_ppp, Lest, nsim = 99)
       output$secondordermap <- renderPlot({
         plot(facility_area.csr, . - r ~ r, 
@@ -454,55 +554,69 @@ server <- function(input, output) {
     })
   })
   
-  #<-------------------------------------gwc------------------------------------->
+#<--------------------Geographically Weighted Correlation-------------------->
+  
   observe({
     gwc_type<-input$gwc_type
     gwc_data<-input$gwc_data
     bandwidth <- input$bandwidth
-    localstats1 <- gwss(sp_mpsz3414_65Above,vars=c("SENIOR_POPULATION","CHAS_CLINIC","COMMUNITY_CLUBS","ELDERCARE","RC","GYM"),bw=bandwidth,adaptive = TRUE,quantile = TRUE)
+    localstats1 <- gwss(sp_mpsz3414_65Above,vars=c("SENIOR_POPULATION","CHAS_CLINICS","COMMUNITY_CLUBS","ELDERCARE_SERVICES","RESIDENTS_COMMITTEES","GYMS"),bw=bandwidth,adaptive = TRUE,quantile = TRUE)
     proj4string(localstats1$SDF) <- CRS("+init=epsg:3414")
     
     if(is.null(gwc_data))
       gwc_data<-character(0)
+    
     if(is.null(gwc_type))
       gwc_type<-character(0)
+    
     if(gwc_data =="Community Clubs"){
       if(gwc_type =="pearson"){
         column_name <- 'Corr_SENIOR_POPULATION.COMMUNITY_CLUBS'
-      }else {
+      }
+      else {
         column_name <- 'Spearman_rho_SENIOR_POPULATION.COMMUNITY_CLUBS'
       }
-    }else if(gwc_data =="CHAS_Clinics"){
+    }
+    else if(gwc_data =="CHAS_Clinics"){
       if(gwc_type =="pearson"){
-        column_name <- 'Corr_SENIOR_POPULATION.CHAS_CLINIC'
-      }else {
-        column_name <- 'Spearman_rho_SENIOR_POPULATION.CHAS_CLINIC'
+        column_name <- 'Corr_SENIOR_POPULATION.CHAS_CLINICS'
       }
-    }else if(gwc_data =="Eldercare Services"){
-      if(gwc_type =="pearson"){
-        column_name <- 'Corr_SENIOR_POPULATION.ELDERCARE'
-      }else {
-        column_name <- 'Spearman_rho_SENIOR_POPULATION.ELDERCARE'
-      }
-    }else if(gwc_data =="Residents Committee"){
-      if(gwc_type =="pearson"){
-        column_name <- 'Corr_SENIOR_POPULATION.RC'
-      }else {
-        column_name <- 'Spearman_rho_SENIOR_POPULATION.RC'
-      }
-    }else{
-      if(gwc_type =="pearson"){
-        column_name <- 'Corr_SENIOR_POPULATION.GYM'
-      }else {
-        column_name <- 'Spearman_rho_SENIOR_POPULATION.GYM'
+      else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.CHAS_CLINICS'
       }
     }
+    else if(gwc_data =="Eldercare Services"){
+      if(gwc_type =="pearson"){
+        column_name <- 'Corr_SENIOR_POPULATION.ELDERCARE_SERVICES'
+      }
+      else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.ELDERCARE_SERVICES'
+      }
+    }
+    else if(gwc_data =="Residents Committee"){
+      if(gwc_type =="pearson"){
+        column_name <- 'Corr_SENIOR_POPULATION.RESIDENTS_COMMITTEES'
+      }
+      else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.RESIDENTS_COMMITTEES'
+      }
+    }
+    else{
+      if(gwc_type =="pearson"){
+        column_name <- 'Corr_SENIOR_POPULATION.GYMS'
+      }
+      else {
+        column_name <- 'Spearman_rho_SENIOR_POPULATION.GYMS'
+      }
+    }
+    
     dud <- is.nan(localstats1$SDF[[column_name]])
     output$gwcmap <- renderPlot(
       drawmap2(localstats1$SDF[!dud,],localstats1$SDF[[column_name]][!dud])
     )
   })
-} # server
+} 
 
-# Run the app ----
+#<--------------------Run the App-------------------->
+
 shinyApp(ui = ui, server = server)
