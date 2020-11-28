@@ -262,26 +262,27 @@ ui <- fluidPage(theme = shinytheme("united"),
                   ),
                   
                   tabPanel("View Data", icon = icon("search"),
+                           column(3,
+                                  wellPanel(
                            selectInput("dataset", "Select Data to View:",
                                        choices = c("Population (65 Above)", 
                                                    "CHAS Clinics",
                                                    "Community Clubs",
                                                    "Eldercare Services",
                                                    "Gyms",
-                                                   "Residents Committee")),
-                           mainPanel(
-                             width = 10,
-                             withSpinner(DT::dataTableOutput('table'))
+                                                   "Residents Committee"))
                            )),
+                           mainPanel(fluid=TRUE,
+                                     fluidRow(
+                             withSpinner(DT::dataTableOutput('table'))
+                           ))),
 
                   tabPanel("Supply and Demand Analysis", icon=icon("globe-asia"),
-                           
-                           fluidRow(
-                             column(6, 
+                           column(3,
+                           wellPanel(
                                     selectInput("mapset", "Select Facility to Analyse:",
-                                                choices = facilities)
-                             ),
-                             column(6,
+                                                choices = facilities),
+                                    
                                     selectInput("binning_method", "Binning Method:",
                                                 choices=c("Standard Deviation"="sd",
                                                                     "Equal"="equal",
@@ -312,17 +313,14 @@ ui <- fluidPage(theme = shinytheme("united"),
                            )),
 
                   tabPanel("Spatial Point Pattern Analysis", icon=icon("chart-line"),
-                           fluidRow(
-                             column(4, 
+                           column(3,
+                                  wellPanel(
                                     selectInput("kdefacilityselect", "Select Facility to Analyse:",
-                                                choices = facilities)
-                             ),
-                             column(4,
-                                    selectInput("kdezoneselect", "Select Planning Area to Analyse:",
-                                                choices = c(unique(mpsz3414_65Above$PLN_AREA_N)))
+                                                choices = facilities),
                                     
-                             ),
-                             column(4,
+                                    selectInput("kdezoneselect", "Select Planning Area to Analyse:",
+                                                choices = c(unique(mpsz3414_65Above$PLN_AREA_N))),
+                                    
                                     selectInput("analysis_method", "Analysis Method:",
                                                   choices = c("G-Function", 
                                                               "F-Function",
