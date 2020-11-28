@@ -29,6 +29,9 @@ mpsz3414 <- st_transform(mpsz, 3414)
 
 eldercare <- st_read(dsn = "../data", layer = "ELDERCARE")
 eldercare3414 <- st_transform(eldercare, 3414)
+eldercare_attributes <- eldercare %>%
+  dplyr::select("NAME","ADDRESSPOS","ADDRESSSTR")
+st_geometry(eldercare_attributes) <- NULL
 
 community_club <- st_read("../data/community-clubs-kml.kml")
 community_club3414 <- st_transform(community_club, 3414)
@@ -38,6 +41,9 @@ chas_clinics3414 <- st_transform(chas_clinics, 3414)
 
 rc <- st_read(dsn = "../data", layer = "REsIDENTSCOMMITTEE")
 rc3414 <- st_transform(rc, 3414)
+rc_attributes <- rc %>%
+  dplyr::select("ADDRESSPOS","ADDRESSSTR","NAME")
+st_geometry(rc_attributes) <- NULL
 
 gym <- st_read("../data/gyms-sg-kml.kml")
 gym3414 <- st_transform(gym, 3414)
@@ -56,7 +62,9 @@ chas_clinics_attributes <- lapply(X = 1:nrow(chas_clinics),
 
 chas_clinics_attributes <- chas_clinics %>%
   bind_cols(bind_rows(chas_clinics_attributes)) %>%
-  dplyr::select(-Description)
+  dplyr::select("HCI_NAME","POSTAL_CD","STREET_NAME","BLK_HSE_NO")
+st_geometry(chas_clinics_attributes) <- NULL
+
 
 community_club_attributes <- lapply(X = 1:nrow(community_club), 
                                     FUN = function(x) {
@@ -72,7 +80,9 @@ community_club_attributes <- lapply(X = 1:nrow(community_club),
 
 community_club_attributes <- community_club %>%
   bind_cols(bind_rows(community_club_attributes)) %>%
-  dplyr::select(-Description)
+  dplyr::select("NAME","ADDRESSPOSTALCODE","ADDRESSSTREETNAME","ADDRESSBLOCKHOUSENUMBER")
+st_geometry(community_club_attributes) <- NULL
+
 
 gym_attributes <- lapply(X = 1:nrow(gym), 
                                     FUN = function(x) {
@@ -88,7 +98,9 @@ gym_attributes <- lapply(X = 1:nrow(gym),
 
 gym_attributes <- gym %>%
   bind_cols(bind_rows(gym_attributes)) %>%
-  dplyr::select(-Description)
+  dplyr::select("NAME","ADDRESSPOSTALCODE","ADDRESSSTREETNAME","ADDRESSBLOCKHOUSENUMBER")
+st_geometry(gym_attributes) <- NULL
+
 
 mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414))
 mpsz3414$`ELDERCARE` <- lengths(st_intersects(mpsz3414, eldercare3414))
@@ -147,9 +159,7 @@ drawmap2 <- function(spdf,var) {
   rescale <- function(x) (x + max(abs(x)))/(2*max(abs(x)))
   colmap <- colorRamp(brewer.pal(9,'RdYlBu'))
   # This part plots the map
-  sgmap <- openmap(localstats1[["SDF"]]@coords)
-  plot(sgmap)
-  plot(spdf,pch='',add=TRUE)
+  plot(spdf,pch='')
   plot(mpsz,col='lightgrey', add=TRUE)
   plot(spdf,pch=16,cex=0.8,col=rgb(colmap(rescale(var)),max=255),add=TRUE,height=600)
   # This part plots the legend
@@ -174,12 +184,7 @@ drawmap2 <- function(spdf,var) {
 ui <- fluidPage(theme = shinytheme("united"),
                 navbarPage("Old but Gold",windowTitle="Old but Gold",
                            tabPanel("Overview",icon=icon("home"),
-                           sidebarPanel(
-                             tags$h3("Input:"),
-                             textInput("txt1", "Given Name:", ""),
-                             textInput("txt2", "Surname:", ""),
-                             
-                           ), # sidebarPanel
+                           
                            mainPanel(
                              h3("IS415 Geospatial Analytics and Applications"),
                              br(),
@@ -312,9 +317,9 @@ server <- function(input, output) {
            "Population (65 Above)" = pop_65above,
            "CHAS Clinics" = chas_clinics_attributes,
            "Community Clubs" = community_club_attributes,
-           "Eldercare Services" = eldercare,
-           "Gyms" = gym,
-           "Residents Committee" = rc
+           "Eldercare Services" = eldercare_attributes,
+           "Gyms" = gym_attributes,
+           "Residents Committee" = rc_attributes
            )
   })
   
