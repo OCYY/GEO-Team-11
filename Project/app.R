@@ -172,9 +172,8 @@ drawmap2 <- function(spdf,var) {
 # Define UI
 # title = div(img(src="../public/images/icon.png"),
 ui <- fluidPage(theme = shinytheme("united"),
-                navbarPage(
-                  "Old but Gold",
-                  tabPanel("Overview",
+                navbarPage("Old but Gold",windowTitle="Old but Gold",
+                           tabPanel("Overview",icon=icon("home"),
                            sidebarPanel(
                              tags$h3("Input:"),
                              textInput("txt1", "Given Name:", ""),
@@ -184,7 +183,17 @@ ui <- fluidPage(theme = shinytheme("united"),
                            mainPanel(
                              h3("IS415 Geospatial Analytics and Applications"),
                              br(),
-                             h4("Old but Gold"),
+                             h3("Old but Gold"),
+                             p("Aging population has always been a prominent issue in Singapore. The percentage of 
+                                individuals over age 65 between 2010 and 2020 increased from 9% to 15.2%. By 2030, 
+                                one in four Singaporeans will be aged 65 and above. While there are many efforts by 
+                                the government to solve this problem, it is inevitable that people will age and all 
+                                of us will grow old one day."),
+                             br(),
+                             strong("It is essential that relevant facilities and amenities are strategically built 
+                                    and readily available for elderly in this land-scarce Singapore."),
+                             br(),
+                             br(),
                              p("Through this application, it is intended to help policymakers to determine the availability
                                and adequecy of essential amenities to support and empower the seniors in Singapore."),
                              p("1. Comparison of supply and demand of various facilities and the aging population 
@@ -192,12 +201,14 @@ ui <- fluidPage(theme = shinytheme("united"),
                              p("2. Identify areas with high distribution of specific facility in a specific subzone."),
                              p("3. Visualisation of geographically weighted correlation between specific facility across
                                Singapore."),
+                             p("4. Facilities included in this application are: CHAS clinics, community clubs, eldercare 
+                               services, gyms, as well as residents committee."),
                              verbatimTextOutput("txtout"),
                              
                            ) # mainPanel
                            
                   ), # Navbar 1, tabPanel
-                  tabPanel("View Data",
+                  tabPanel("View Data",icon=icon("search"),
                            # Input: Choose dataset ----
                            selectInput("dataset", "Select Data to View:",
                                        choices = c("Population (65 Above)", 
@@ -213,7 +224,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                      withSpinner(DT::dataTableOutput('table'))
                            )),
                   
-                  tabPanel("Supply and Demand Analysis", 
+                  tabPanel("Supply and Demand Analysis", icon=icon("globe-asia"),
                            selectInput("mapset", "Select Data to Analyse:",
                                        choices = c("CHAS Clinics", 
                                                    "Community Clubs",
@@ -232,7 +243,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                        )
                                      )
                            )),
-                  tabPanel("Kernel Density Estimation", 
+                  tabPanel("Kernel Density Estimation", icon=icon("chart-line"),
                            fluidRow(
                              column(4, 
                                     selectInput("kdefacilityselect", "Select Facility to Analyse:",
@@ -270,7 +281,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                            )
                            
                   ),
-                  tabPanel("GWC", 
+                  tabPanel("GWC", icon=icon("laptop-code"),
                            selectInput("gwc_data", "Select Data to Analyse:",
                                        choices = c("CHAS Clinics", 
                                                    "Community Clubs",
