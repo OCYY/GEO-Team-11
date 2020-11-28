@@ -24,7 +24,7 @@ gym <- st_read("../data/gyms-sg-kml.kml")
 
 #<--------------------Transforming Projections-------------------->
 
-mpsz_3414 <- st_transform(mpsz19, 3414)
+mpsz_3414 <- st_transform(mpsz, 3414)
 eldercare3414 <- st_transform(eldercare, 3414)
 community_club3414 <- st_transform(community_club, 3414)
 chas_clinics3414 <- st_transform(chas_clinics, 3414)
@@ -125,13 +125,13 @@ st_geometry(rc_attributes) <- NULL
 
 #<--------------------Joining the Data-------------------->
 
-mpsz3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz3414, community_club3414))
-mpsz3414$`ELDERCARE_SERVICES` <- lengths(st_intersects(mpsz3414, eldercare3414))
-mpsz3414$`CHAS_CLINICS`<- lengths(st_intersects(mpsz3414, chas_clinics3414))
-mpsz3414$`RESIDENTS_COMMITTEES`<- lengths(st_intersects(mpsz3414, rc3414))
-mpsz3414$`GYMS`<- lengths(st_intersects(mpsz3414, gym3414))
+mpsz_3414$`COMMUNITY_CLUBS` <- lengths(st_intersects(mpsz_3414, community_club3414))
+mpsz_3414$`ELDERCARE_SERVICES` <- lengths(st_intersects(mpsz_3414, eldercare3414))
+mpsz_3414$`CHAS_CLINICS`<- lengths(st_intersects(mpsz_3414, chas_clinics3414))
+mpsz_3414$`RESIDENTS_COMMITTEES`<- lengths(st_intersects(mpsz_3414, rc3414))
+mpsz_3414$`GYMS`<- lengths(st_intersects(mpsz_3414, gym3414))
 
-mpsz3414_65Above <- left_join(mpsz3414, pop_65above, by=c("SUBZONE_N" = "SZ"))
+mpsz3414_65Above <- left_join(mpsz_3414, pop_65above, by=c("SUBZONE_N" = "SZ"))
 # mpsz3414_65Above <- mpsz3414_65Above[!is.na(mpsz3414_65Above$'SENIOR_POPULATION'), ]
 
 #<--------------------Preprocessing for KDE-------------------->
@@ -193,7 +193,7 @@ gym_ppp = ppp_gym_jit[mpsz_owin]
 
 mpsz3414_65Above$'SENIOR_POPULATION'[is.na(mpsz3414_65Above$'SENIOR_POPULATION')] = 0
 sp_mpsz3414_65Above <- st_set_geometry(mpsz3414_65Above, NULL)
-sp_mpsz3414_65Above <- SpatialPointsDataFrame(data=sp_mpsz3414_65Above,coords=sp_mpsz3414_65Above[,12:13])
+sp_mpsz3414_65Above <- SpatialPointsDataFrame(data=sp_mpsz3414_65Above,coords=coordinates(mpszB))
 proj4string(sp_mpsz3414_65Above) <- CRS("+init=epsg:3414")
 
 drawmap2 <- function(spdf,var) {
