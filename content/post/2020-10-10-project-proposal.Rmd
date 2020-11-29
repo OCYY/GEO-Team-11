@@ -140,7 +140,7 @@ TCM Clinics
 - Leaflet
 - Github
 - R Blogdown
-- Netlify
+- Netlify 
 
 ### Application System Architecture
 ![](/post/2020-10-10-project-proposal_files/architecture_0002.png){width=700px height=400px}
