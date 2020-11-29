@@ -59,7 +59,7 @@ mpsz_3414_attributes <- lapply(X = 1:nrow(mpsz_3414),
                                  FUN = function(x) {
                                    mpsz_3414 %>% 
                                      slice(x) %>%
-                                     pull('Description') %>%
+                                     pull("Description") %>%
                                      read_html() %>%
                                      html_node("table") %>%
                                      html_table(header = TRUE, trim = TRUE, dec = ".", fill = TRUE) %>%
@@ -75,7 +75,7 @@ chas_clinics_attributes <- lapply(X = 1:nrow(chas_clinics),
                                   FUN = function(x) {
                                     chas_clinics %>% 
                                       slice(x) %>%
-                                      pull('Description') %>%
+                                      pull("Description") %>%
                                       read_html() %>%
                                       html_node("table") %>%
                                       html_table(header = TRUE, trim = TRUE, dec = ".", fill = TRUE) %>%
@@ -92,7 +92,7 @@ community_club_attributes <- lapply(X = 1:nrow(community_club),
                                     FUN = function(x) {
                                       community_club %>% 
                                         slice(x) %>%
-                                        pull('Description') %>%
+                                        pull("Description") %>%
                                         read_html() %>%
                                         html_node("table") %>%
                                         html_table(header = TRUE, trim = TRUE, dec = ".", fill = TRUE) %>%
@@ -109,7 +109,7 @@ gym_attributes <- lapply(X = 1:nrow(gym),
                                     FUN = function(x) {
                                       gym %>% 
                                         slice(x) %>%
-                                        pull('Description') %>%
+                                        pull(mpsz_3414$Description) %>%
                                         read_html() %>%
                                         html_node("table") %>%
                                         html_table(header = TRUE, trim = TRUE, dec = ".", fill = TRUE) %>%

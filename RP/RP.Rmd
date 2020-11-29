@@ -8,7 +8,10 @@ author:
 abstract: |
   Though Singapore has been a global example of a modern smart city and deemed as an urban planning success, it has one of the fastest aging populations in the world. As such, Singapore faces the challenge of planning and developing the city to accommodate the changing age structure. This paper examines some of the essential amenities and facilities for the aged population in Singapore to evaluate if these are enough to support the increasing number of elderly residents. By designing and developing Old but Gold, a visualisation tool that uses various analysis methods such as supply and demand analysis, spatial point patterns analysis, and geographically weighted correlation, provides valuable insights for policymakers to determine if there is a need for more amenities and facilities to be built and where it should be built. 
 
-output: rticles::acm_article
+output: 
+  rticles::acm_article
+header-includes:
+  - \usepackage{float}
 ---
 
 
@@ -32,13 +35,18 @@ In a work done by Chris Brunsdon in collaboration with Maynooth University in 20
 
 # Methods 
 
-## System Architecture 
-![](images/architecture_0002.png){width=600px}
+## System Architecture
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/architecture_0002.png"}
+\end{figure}
 
 ## Data Collection 
 All the data required for this project are readily available for download either from data.gov.sg or singstat.gov.sg. The data that we used are as follows:
 
-![](images/packages.png){width=400px}
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/packages.png"}
+  \caption{System Architecture}
+\end{figure}
 
 ## Data Cleaning
 CHAS clinics, community clubs, eldercare services, gyms, and residents committee datasets consist of locations of the facility and upon taking a closer look at the datasets, there are cases whereby both facilities share the same building and hence we did not remove the duplicated points except for the KDE analysis as the points used cannot be coincident. 
@@ -70,33 +78,58 @@ Geographically weighted correlation measures the degree to which two variables a
 # Application
 This section will highlight some of the application features of the Old but Gold application at different stages of a user’s journey.
 
-![](images/app_1.png){width=600px}
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/app_1.png"}
+  \caption{View Data Tab}
+\end{figure}
 
 View data tab allows the user to have a glimpse of all the datasets that are being used in the application. From the population dataset, we included the planning area, subzone, and the number of seniors in that specific subzone. For the rest of the location data, the name of the facility, postal code, and address are shown. 
 
-![](images/app_2.png){width=600px}
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/app_2.png"}
+  \caption{Supply and Demand Analysis}
+\end{figure}
+
 On the supply and demand analysis page, users will be able to select the facility they would like to analyse, as well as the binning method for the analysis from the side panel. On the main panel, the supply of the selected facility is then shown, with the demand map on the right. The demand is mapped using the senior population in the subzone, while the supply map is mapped using the number of facilities in the subzone. 
 
-![](images/app_3.png){width=600px}
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/app_3.png"}
+  \caption{Spatial Point Pattern Analysis}
+\end{figure}
+
 
 Under the spatial point pattern analysis tab, users are able to select the facility to analyse, the planning area, and the analysis method for second-order analysis from the side panel. On the main panel, it shows the KDE analysis map on the left and the second-order analysis on the right. 
 
-![](images/app_4.png){width=600px}
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/app_4.png"}
+  \caption{Geographically Weighted Correlation}
+\end{figure}
 
 Under the geographically weighted correlation tab, it shows the correlation between the selected facility and the population geographically. Users are able to select from the list of facilities, select the type of correlation, and the bandwidth of the statistics. 
 
 # Results 
-![](images/analysis_1.jpg){width=600px}
+
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/analysis_1.jpg"}
+  \caption{Demand and Supply Maps}
+\end{figure}
 
 Taking eldercare services as an example, we can see that from the demand map, as shown above,  the aged population is more populated in the east, followed by the west and the north of Singapore, and the supply of eldercare services are largely located in the east, with some in the south and west, with lesser eldercare services in the north. These can be deduced from the shade of the colour of the map. From this analysis, we can derive that there could be more eldercare services in the north and west to cater to the aged population in those areas. 
 
 The observations are logical as the shaded regions on the map are mainly residential area, it would be inevitable that there will be some residents aged 65 and above living in the area.
 
-![](images/analysis_2.jpg){width=600px}
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/analysis_2.jpg"}
+  \caption{First and Second Order Analysis}
+\end{figure}
+
 
 Taking a closer look at the east side, we will take CHAS clinic in the area Bedok as an example. From the KDE analysis on the left, we can see that the CHAS clinics are more concentrated in the heart of Bedok as the colour is more intense in that area. L-function is used in this example and looking at the second-order analysis, the result indicates strong clustering at almost all distances, which corresponds to the observations made from the KDE plot. 
 
-![](images/analysis_3.jpg){width=600px}
+\begin{figure}[H]
+  \includegraphics[width=85mm]{"images/analysis_3.jpg"}
+  \caption{Geographically Weighted Correlation}
+\end{figure}
 
 Geographically weighted correlation measures the degree that two variables are associated and in the application, the selected facility is being plotted against the population of residents aged 65 and above, to determine the relationship between the two variables. In the example shown here, we selected the CHAS clinic variable and Pearson correlation with 10 as its bandwidth. As we can observe from the map, most of the regions are not correlated with CHAS clinics as most of them are yellow or red in colour. Regions such as the west, east and some parts in the south of Singapore are either marginally or highly correlated with the senior population in Singapore.
 
@@ -127,57 +160,9 @@ The authors would like to thank Dr. Kam Tin Seong, the Associate Professor of In
 
 
 # References
+Chia, N. (2019). AGE-FRIENDLY CITIES - Lessons from Seoul and Singapore, CLC Publications, March. Available at: https://www.clc.gov.sg/docs/default-source/boo ks/book-age-friendly-cities.pdf
 
----
-references:
-- id: seoulsg
-  title: AGE-FRIENDLY CITIES - Lessons from Seoul and Singapore
-  URL: 'https://www.clc.gov.sg/docs/default-source/books/book-age-friendly-cities.pdf'
-  publisher: CLC Publications
-  page: 17
-  type: article-journal
-  issued:
-    year: 2019
-- id: straitstimes
-  title: Free entry to public gyms and pools for seniors
-  author:
-  - family: Chia
-    given: Nicole
-  URL: 'https://www.straitstimes.com/singapore/free-entry-to-public-gyms-and-pools-for-seniors'
-  publisher: The Straits Times
-  type: news
-  issued:
-    year: 2020
-    month: 3
-- id: mdpi
-  title: Spatial Distribution Characteristics of Healthcare Facilities in Nanjing: Network Point Pattern Analysis and Correlation Analysis
-  author:
-  - family: Ni
-    given: Jianhua
-  - family: Qian
-    given: Tianlu
-  - family: Xi
-    given: Changbai
-  - family: Rui
-    given: Yikang
-  - family: Wang
-    given: Jiechen
-  URL: 'https://www.mdpi.com/1660-4601/13/8/833'
-  DOI: 10.3390/ijerph13080833
-  publisher: MDPI
-  type: article-journal
-  issued:
-    year: 2016
-    month: 8
-- id: gwss
-  title: Geographically Weighted Summary Statistics
-  author:
-  - family: Brunsdon
-    given: Chris
-  URL: 'https://rstudio-pubs-static.s3.amazonaws.com/503649_13027b8d4636466d93917435af74aea3.html'
-  type: article-journal
-  issued:
-    year: 2019
-    month: 7    
-...
+Ni.J, Qian.T, Xi.C, Rui.Y, Wang.J (2016). Spatial Distribution Characteristics of Healthcare Facilities in Nanjing: Network Point Pattern Analysis and Correlation Analysis, MDPI, August. Available at: https://www.mdpi.com/1660-4601/13/8/833
+
+Brunsdon.C (2019). Geographically Weighted Summary Statistics, R-Studio, July. Available at: https://rstudio-pubs-static.s3.amazonaws.com/503649_13027b8d4636466d93917435af74aea3.html
 

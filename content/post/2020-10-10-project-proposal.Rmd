@@ -9,7 +9,7 @@ tags: []
 ## IS415 Geospatial Analytics Project Proposal
 
 ### Title 
-Spatial Analysis of the Distribution Pattern of Healthcare Facilities and Amenities in Singapore Using Geographic Information System
+Spatial Points Pattern Analysis ad Geographically Weighted Correlation Analysis of Facilities and Amenities for Aged Population
 
 ### Problem and Motivation
 Aging population has always been a prominent issue in Singapore. The percentage of individuals over age 65 between 2010 and 2020 increased from 9% to 15.2%. By 2030, one in four Singaporeans will be aged 65 and above. While there are many efforts by the government to solve this problem, it is inevitable that people will age and all of us will grow old one day. 
@@ -26,6 +26,8 @@ Through this project, we aim to build a Shiny application to:
 - Analyse the availability of age-friendly amenities and facilities in subzone planning area
 
 - Determine which areas needs more age-friendly amenities and facilities
+
+- Make use of geographically weighted correlation to determine if a region's facilities are correlated to the aged population 
 
 ### Reviews of Past Projects
 1. Signal
@@ -124,9 +126,13 @@ TCM Clinics
 - https://prs.moh.gov.sg/prs/internet/profSearch/main.action?hpe=TCM
 
 ### Application Design Storyboard
-<img src="/post/2020-10-10-project-proposal_files/Storyboard-2.png" alt="view data tab with filters/ selectors" width="700px" height ="400px"/>
+<img src="/post/2020-10-10-project-proposal_files/app_1.png" alt="view data" width="700px" height ="400px"/>
 
-<img src="/post/2020-10-10-project-proposal_files/Storyboard-3.png" alt="kde plot tab with filters/ selctors" width="700px" height ="400px"/>
+<img src="/post/2020-10-10-project-proposal_files/app_2.png" alt="supply and demand" width="700px" height ="400px"/>
+
+<img src="/post/2020-10-10-project-proposal_files/app_3.png" alt="kde" width="700px" height ="400px"/>
+
+<img src="/post/2020-10-10-project-proposal_files/app_4.png" alt="gwc" width="700px" height ="400px"/>
 
 ### Tools and Technologies
 - RStudio
@@ -137,7 +143,7 @@ TCM Clinics
 - Netlify
 
 ### Application System Architecture
-![](/post/2020-10-10-project-proposal_files/architechture.png){width=700px height=400px}
+![](/post/2020-10-10-project-proposal_files/architecture_0002.png){width=700px height=400px}
 
 ### Scope of Work
 ![](/post/2020-10-10-project-proposal_files/Gantt Chart.jpg){width=750px height=260px}
