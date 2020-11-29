@@ -1,0 +1,13 @@
+name: Project
+title: Project
+username:
+account: chenyuo
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3318294
+bundleId: 3918680
+url: https://chenyuo.shinyapps.io/Project/
+when: 1606645825.67298
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|www/.DS_Store
