@@ -1,9 +1,9 @@
 #<--------------------Load R packages-------------------->
 
-packages = c('shiny', 'shinythemes', 'leaflet', 'DT', 'sp',
-             'rgeos', 'sf', 'rgdal', 'tidyverse', 'tmap',
-             'maptools', 'raster', 'spatstat', 'httr', 'rvest',
-             'GWmodel', 'lctools', 'RColorBrewer', 'shinycssloaders')
+packages = c('shiny', 'shinythemes','DT', 'sp','rgeos',
+             'sf', 'rgdal', 'tidyverse', 'tmap', 'maptools',
+             'raster', 'spatstat', 'httr', 'rvest', 'GWmodel',
+             'lctools', 'RColorBrewer', 'shinycssloaders')
 
 for (p in packages){
   if(!require(p, character.only = T)){
@@ -208,7 +208,7 @@ drawmap2 <- function(spdf,var) {
   p2 <- 63.305 -  seq(0,2.4,l=5)
   varvals <- seq(min(var),max(var),l=5)
   varlabs <- sprintf('%5.1f',varvals)
-  legend("topleft", legend=c(varlabs),title="Correlation",col=rgb(colmap(rescale(var)),max=255),pch=16,cex=1.2)  
+  legend("topleft", legend=c(varlabs),title="Correlation",col=rgb(colmap(rescale(varvals)),max=255),pch=16,cex=1.4)  
   # rect("topleft",col='lightgrey')
   # varvals <- seq(min(var),max(var),l=5)
   # varlabs <- sprintf('%5.1f',varvals)
@@ -232,51 +232,34 @@ facilities <- c("CHAS Clinics",
 ui <- fluidPage(theme = shinytheme("united"),
                 navbarPage("Old but Gold",windowTitle="Old but Gold",
                            tabPanel("Overview",icon=icon("home"),
+                            img(src="Overview.png", width = '100%')
                            
-                           mainPanel(
-                             h3("IS415 Geospatial Analytics and Applications"),
-                             br(),
-                             h3("Old but Gold"),
-                             p("Aging population has always been a prominent issue in Singapore. The percentage of 
-                                individuals over age 65 between 2010 and 2020 increased from 9% to 15.2%. By 2030, 
-                                one in four Singaporeans will be aged 65 and above. While there are many efforts by 
-                                the government to solve this problem, it is inevitable that people will age and all 
-                                of us will grow old one day."),
-                             br(),
-                             strong("It is essential that relevant facilities and amenities are strategically built 
-                                    and readily available for elderly in this land-scarce Singapore."),
-                             br(),
-                             br(),
-                             p("Through this application, it is intended to help policymakers to determine the availability
-                               and adequecy of essential amenities to support and empower the seniors in Singapore."),
-                             p("1. Comparison of supply and demand of various facilities and the aging population 
-                               (aged 65 and above)."),
-                             p("2. Identify areas with high distribution of specific facility in a specific subzone."),
-                             p("3. Visualisation of geographically weighted correlation between specific facility across
-                               Singapore."),
-                             p("4. Facilities included in this application are: CHAS clinics, community clubs, eldercare 
-                               services, gyms, as well as residents committee."),
-                             verbatimTextOutput("txtout"),
-                             
-                           )
                   ),
                   
                   tabPanel("View Data", icon = icon("search"),
-                           column(3,
-                                  wellPanel(
-                           selectInput("dataset", "Select Data to View:",
-                                       choices = c("Population (65 Above)", 
-                                                   "CHAS Clinics",
-                                                   "Community Clubs",
-                                                   "Eldercare Services",
-                                                   "Gyms",
-                                                   "Residents Committee"))
-                           )),
-                           mainPanel(fluid=TRUE,
-                                     fluidRow(
-                             withSpinner(DT::dataTableOutput('table'))
-                           ))),
-
+                           column(
+                             3,
+                             wellPanel(
+                               selectInput(
+                                 "dataset", "Select Data to View:",
+                                 choices = c("Population (65 Above)", 
+                                             "CHAS Clinics",
+                                             "Community Clubs",
+                                             "Eldercare Services",
+                                             "Gyms",
+                                             "Residents Committee")
+                               )
+                             )
+                           ),
+                           mainPanel(
+                             fluidRow(
+                               withSpinner(
+                                 DT::dataTableOutput('table')
+                               )
+                             )
+                           )
+                  ), 
+                  
                   tabPanel("Supply and Demand Analysis", icon=icon("globe-asia"),
                            column(3,
                            wellPanel(
@@ -313,35 +296,50 @@ ui <- fluidPage(theme = shinytheme("united"),
                            )),
 
                   tabPanel("Spatial Point Pattern Analysis", icon=icon("chart-line"),
-                           column(3,
-                                  wellPanel(
-                                    selectInput("kdefacilityselect", "Select Facility to Analyse:",
-                                                choices = facilities),
-                                    
-                                    selectInput("kdezoneselect", "Select Planning Area to Analyse:",
-                                                choices = c(unique(mpsz3414_65Above$PLN_AREA_N))),
-                                    
-                                    selectInput("analysis_method", "Analysis Method:",
-                                                  choices = c("G-Function", 
-                                                              "F-Function",
-                                                              "K-Function",
-                                                              "L-Function")),
+                           
+                           column(
+                             3,
+                             wellPanel(
+                               selectInput(
+                                 "kdefacilityselect", "Select Facility to Analyse:",
+                                 choices = facilities
+                               ),
+                               selectInput(
+                                 "kdezoneselect", "Select Planning Area to Analyse:",
+                                 choices = c(unique(mpsz3414_65Above$PLN_AREA_N))
+                               ),
+                               selectInput(
+                                 "analysis_method", "Analysis Method:",
+                                 choices = c("G-Function", 
+                                             "F-Function",
+                                             "K-Function",
+                                             "L-Function")
+                               )
                              )
                            ),
-                           
-                           mainPanel(fluid=TRUE,
-                                     fluidRow(
-                                       column(width=6,withSpinner(tmapOutput(
-                                         outputId = "kdemap"
-                                       ))
-                                       ),
-                                       column(width=6,withSpinner(plotOutput(
-                                         outputId = "secondordermap"
-                                       ))
-                                       )
-                                     )
+
+                           mainPanel(
+                             fluidRow(
+                               column(
+                                 width = 6,
+                                 h4("First Order Analysis", align = "center"),
+                                 withSpinner(
+                                   tmapOutput(
+                                     outputId = "kdemap"
+                                   )
+                                 )
+                               ),
+                               column(
+                                 width = 6,
+                                 h4("Second Order Analysis", align = "center"),
+                                 withSpinner(
+                                   plotOutput(
+                                     outputId = "secondordermap"
+                                   )
+                                 )
+                               )
+                             )
                            )
-                           
                   ),
 
                   tabPanel("Geographically Weighted Correlation", icon = icon("laptop-code"),
@@ -354,7 +352,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                radioButtons(
                                  "gwc_type", "GWC type:",
                                  c("Pearson Correlation" = "pearson",
-                                   "Spearman Correlation" = "spearman")
+                                   "Spearman's Rank Correlation" = "spearman")
                                ),
                                sliderInput(
                                  "bandwidth", "Bandwidth:",
@@ -411,60 +409,60 @@ server <- function(input, output) {
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
           tm_polygons("COMMUNITY_CLUBS",style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
       output$demandmap <- renderTmap (
         tm_shape(mpsz3414_65Above)+
           tm_polygons("SENIOR_POPULATION",style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
     }
     else if (x =="CHAS Clinics"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
           tm_polygons("CHAS_CLINICS", style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
       output$demandmap <- renderTmap (
         tm_shape(mpsz3414_65Above)+
           tm_polygons("SENIOR_POPULATION",style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
     }
     else if (x =="Eldercare Services"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
           tm_polygons("ELDERCARE_SERVICES", style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
       output$demandmap <- renderTmap (
         tm_shape(mpsz3414_65Above)+
           tm_polygons("SENIOR_POPULATION",style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
     }
     else if (x == "Residents Committee"){
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
           tm_polygons("RESIDENTS_COMMITTEES", style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
       output$demandmap <- renderTmap (
         tm_shape(mpsz3414_65Above)+
           tm_polygons("SENIOR_POPULATION",style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
     }
     else {
       output$supplymap <- renderTmap(
         tm_shape(mpsz3414_65Above)+
           tm_polygons("GYMS", style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
       output$demandmap <- renderTmap (
         tm_shape(mpsz3414_65Above)+
           tm_polygons("SENIOR_POPULATION",style=bin)+
-          tm_layout(legend.position = c("right", "bottom"))
+          tm_view(view.legend.position = c('right', 'bottom'))
       )
     }
   })
@@ -517,7 +515,8 @@ server <- function(input, output) {
         tm_shape(area)+
         tm_borders(lwd = 1)+
         tm_basemap(group = "OpenStreetMap")+
-        tm_layout(main.title="KDE of Facility")
+        tm_layout(main.title="KDE of Facility")+
+        tm_view(view.legend.position = c('right', 'bottom'))
     )
     
 #<--------------------Second Order Analysis-------------------->
