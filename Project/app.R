@@ -1,26 +1,33 @@
 #<--------------------Load R packages-------------------->
 
-packages = c('shiny', 'shinythemes','DT', 'sp','rgeos',
-             'sf', 'rgdal', 'tidyverse', 'tmap', 'maptools',
-             'raster', 'spatstat', 'httr', 'rvest', 'GWmodel',
-             'lctools', 'RColorBrewer', 'shinycssloaders')
-
-for (p in packages){
-  if(!require(p, character.only = T)){
-    install.packages(p)
-  }
-  library(p,character.only = T)
-}
+library('shiny')
+library('shinythemes')
+library('DT')
+library('sp')
+library('rgeos')
+library('sf')
+library('rgdal')
+library('tidyverse')
+library('tmap')
+library("maptools")
+library('raster')
+library('spatstat')
+library('httr')
+library('rvest')
+library("GWmodel")
+library('lctools')
+library('RColorBrewer')
+library('shinycssloaders')
 
 #<--------------------Import Data-------------------->
 
-popdata <- read_csv("../data/respopagesextod2011to2020.csv")
-mpsz <- st_read("../data/master-plan-2019-subzone-boundary-no-sea-kml.kml")
-eldercare <- st_read(dsn = "../data", layer = "ELDERCARE")
-community_club <- st_read("../data/community-clubs-kml.kml")
-chas_clinics <- st_read("../data/chas-clinics-kml.kml")
-rc <- st_read(dsn = "../data", layer = "REsIDENTSCOMMITTEE")
-gym <- st_read("../data/gyms-sg-kml.kml")
+popdata <- read_csv("data/respopagesextod2011to2020.csv")
+mpsz <- st_read("data/master-plan-2019-subzone-boundary-no-sea-kml.kml")
+eldercare <- st_read(dsn = "data", layer = "ELDERCARE")
+community_club <- st_read("data/community-clubs-kml.kml")
+chas_clinics <- st_read("data/chas-clinics-kml.kml")
+rc <- st_read(dsn = "data", layer = "REsIDENTSCOMMITTEE")
+gym <- st_read("data/gyms-sg-kml.kml")
 
 #<--------------------Transforming Projections-------------------->
 
@@ -136,7 +143,7 @@ mpsz3414_65Above <- left_join(mpsz_3414, pop_65above, by=c("SUBZONE_N" = "SZ"))
 
 #<--------------------Preprocessing for KDE-------------------->
 
-mpszB <- readOGR("../data/master-plan-2019-subzone-boundary-no-sea-kml.kml","URA_MP19_SUBZONE_NO_SEA_PL")
+mpszB <- readOGR("data/master-plan-2019-subzone-boundary-no-sea-kml.kml","URA_MP19_SUBZONE_NO_SEA_PL")
 mpszB <- spTransform(mpszB,CRS("+init=epsg:3414"))
 
 mpszB_attributes <- lapply(X = 1:nrow(mpszB@data), 

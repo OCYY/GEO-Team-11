@@ -1,0 +1,12 @@
+name: Project
+title: Project
+username:
+account: njiahui
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3317909
+bundleId: 3918081
+url: https://njiahui.shinyapps.io/Project/
+when: 1606630735.12301
+asMultiple: FALSE
+asStatic: FALSE
